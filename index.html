@@ -1,0 +1,1196 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Baustellenprotokoll: Fotos aufnehmen, Notizen und Pendenzen erfassen, als PDF per Mail versenden.">
+<meta name="apple-mobile-web-app-title" content="Baustelle">
+<title>Baustellenprotokoll</title>
+<meta name="theme-color" content="#066A50">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+:root{
+  /* Layout: eine daumenfreundliche Spalte (max 44rem); Markenbalken oben sticky, Aktionsleiste unten fix */
+  --dunkelgruen:#066A50; --hellgruen:#71A934; --rot:#BB1E10; --anthrazit:#3F525E; --hellblau:#D6E8DF; --weiss:#FFFFFF;
+  --bg:#F1F6F3; --surface:#FFFFFF; --surface-2:#E6F0EA; --line:#C5D6CD; --line-strong:#8FA79B;
+  --fg:#0A1511; --muted:#3F525E;
+  --primary:#066A50; --on-primary:#FFFFFF; --primary-press:#04503C;
+  --danger:#BB1E10; --danger-fg:#BB1E10; --on-danger:#FFFFFF;
+  --ok-bg:#71A934; --ok-fg:#0A1511; --ok-text:#066A50;
+  --tint:#D6E8DF; --focus:#066A50; --knob:#FFFFFF;
+  --bar:#066A50; --on-bar:#FFFFFF;
+  --scrim:rgba(5,24,18,.55);
+  --shadow:0 1px 2px rgba(4,40,30,.10),0 6px 20px rgba(4,40,30,.06);
+  --font:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --font-head:"Roboto Condensed","Roboto","Arial Narrow",system-ui,sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1612; --surface:#11211C; --surface-2:#173029; --line:#294239; --line-strong:#4D6A5E;
+    --fg:#E6EFEA; --muted:#A2B5AC;
+    --primary:#71A934; --on-primary:#0A1511; --primary-press:#5E9128;
+    --danger-fg:#FF8172; --ok-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
+    --scrim:rgba(0,0,0,.65); --shadow:0 1px 2px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1612; --surface:#11211C; --surface-2:#173029; --line:#294239; --line-strong:#4D6A5E;
+  --fg:#E6EFEA; --muted:#A2B5AC;
+  --primary:#71A934; --on-primary:#0A1511; --primary-press:#5E9128;
+  --danger-fg:#FF8172; --ok-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
+  --scrim:rgba(0,0,0,.65); --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.45 var(--font);-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bar)}
+h1,h2,h3{font-family:var(--font-head);text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;padding:0;margin:-1px}
+.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* Topbar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);color:var(--on-bar);border-bottom:4px solid var(--hellgruen)}
+.topbar-inner{max-width:44rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:12px;min-height:62px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.brand .i{width:28px;height:28px}
+.brand-text{min-width:0}
+.app-name{font:700 20px/1.1 var(--font-head);letter-spacing:.01em}
+.app-sub{font-size:14px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-bar{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid currentColor;background:transparent;color:var(--on-bar);font:600 16px var(--font-head);cursor:pointer;flex:none}
+.btn-bar:focus-visible{outline:3px solid var(--on-bar);outline-offset:2px}
+
+/* Main */
+.wrap{max-width:44rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+
+.banner{background:var(--tint);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between}
+.banner p{margin:0;flex:1 1 16rem;min-width:0}
+.banner.warn{background:var(--surface);border-color:var(--danger);color:var(--fg)}
+.banner.warn strong{color:var(--danger-fg)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.head>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;cursor:pointer;border-radius:var(--r)}
+details.head>summary::-webkit-details-marker{display:none}
+details.head>summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sum-title{font:700 17px var(--font-head)}
+.sum-meta{flex:1;min-width:0;color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{transition:transform .15s}
+details[open] .chev{transform:rotate(180deg)}
+.head-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:4px 14px 16px}
+.head-grid .wide{grid-column:1/-1}
+@media (max-width:359px){.head-grid{grid-template-columns:1fr}}
+
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.lbl{font:600 13px/1.2 var(--font-head);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+input[type=text],input[type=email],input[type=date],input:not([type]),textarea{font:inherit;font-size:17px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line-strong);border-radius:10px;padding:11px 12px;min-height:50px;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}
+input[type=date]{min-width:0;display:block}
+textarea{min-height:120px;resize:vertical;line-height:1.45}
+input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
+.field-note{font-size:14px;color:var(--muted)}
+.field-note.err{color:var(--danger-fg);font-weight:500}
+
+/* List */
+.list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.list-head h2{font-size:22px}
+.stats{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums}
+.entries{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.entry{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.entry-main{flex:1;min-width:0;display:flex;gap:12px;padding:12px;text-align:left;background:none;border:0;cursor:pointer;align-items:flex-start}
+.entry-main:focus-visible,.entry-check:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.num{flex:none;width:38px;height:38px;border-radius:8px;display:grid;place-items:center;font:700 18px var(--font-head);background:var(--dunkelgruen);color:var(--weiss);font-variant-numeric:tabular-nums}
+.is-open .num{background:var(--rot)}
+.is-done .num{background:var(--hellgruen);color:var(--ok-fg)}
+.entry-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.entry-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.ort{font:600 17px/1.25 var(--font-head);min-width:0;overflow-wrap:anywhere}
+.ort.none{color:var(--muted);font-weight:500}
+.chip{flex:none;font:700 12px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-radius:6px;white-space:nowrap}
+.chip-open{background:var(--rot);color:var(--weiss)}
+.chip-done{background:var(--hellgruen);color:var(--ok-fg)}
+.entry .text{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.meta{font-size:14.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
+.meta .late{color:var(--danger-fg);font-weight:700}
+.carried{font-size:13.5px;color:var(--muted);font-style:italic}
+.thumbs{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.thumbs img,.thumbs .more{width:56px;height:56px;border-radius:6px;object-fit:cover;background:var(--surface-2);display:block}
+.thumbs .more{display:grid;place-items:center;font:700 15px var(--font-head);color:var(--muted)}
+.entry-check{flex:none;width:60px;border:0;border-left:1px solid var(--line);background:var(--surface-2);cursor:pointer;display:grid;place-items:center;color:var(--muted)}
+.ring{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--line-strong);display:grid;place-items:center;color:transparent}
+.entry-check[aria-pressed="true"] .ring{background:var(--hellgruen);border-color:var(--hellgruen);color:var(--ok-fg)}
+.entry-check .ring .i{stroke-width:3;width:20px;height:20px}
+
+.empty{background:var(--surface);border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:18px 16px}
+.empty h3{font-size:19px;margin-bottom:8px}
+.steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+.small{font-size:14px;color:var(--muted);margin:10px 0 0}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:0 18px;border-radius:10px;border:1.5px solid var(--line-strong);background:var(--surface);color:var(--fg);font:600 17px/1.1 var(--font-head);letter-spacing:.01em;text-decoration:none;cursor:pointer;text-align:center}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:var(--on-primary)}
+.btn.primary:active{background:var(--primary-press)}
+.btn.danger{background:var(--danger);border-color:var(--danger);color:var(--on-danger)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--fg);text-decoration:underline;text-underline-offset:3px}
+.btn.ghost.warn{color:var(--danger-fg)}
+.btn.onbar{background:var(--on-bar);border-color:var(--on-bar);color:var(--bar);min-height:44px;padding:0 16px}
+.btn.icon{padding:0;width:52px;flex:none}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.btn.onbar:focus-visible{outline-color:var(--on-bar)}
+
+/* Action bar */
+.actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(4,40,30,.08);padding-bottom:env(safe-area-inset-bottom,0px)}
+.actionbar-inner{max-width:44rem;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+.actionbar .btn{flex-direction:column;gap:3px;min-height:62px;padding:6px 4px;font-size:15px}
+.actionbar .btn .i{width:26px;height:26px}
+.actionbar .btn.primary{flex-direction:row;gap:10px;font-size:18px}
+.actionbar .btn.primary .i{width:30px;height:30px}
+
+/* Dialogs */
+dialog{color:var(--fg);background:var(--bg);border:0;padding:0}
+dialog::backdrop{background:var(--scrim)}
+.sheet{width:100%;max-width:44rem;height:100%;max-height:100%;margin:0 auto;overflow:hidden}
+.sheet[open]{display:flex;flex-direction:column}
+@media (min-width:760px){.sheet{height:auto;max-height:calc(100% - 48px);margin-block:24px;border-radius:16px}}
+.sheet-head{flex:none;display:flex;align-items:center;gap:12px;background:var(--bar);color:var(--on-bar);padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:4px solid var(--hellgruen)}
+.sheet-head h2{flex:1;font-size:21px;min-width:0}
+.sheet-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding-top:16px;padding-bottom:calc(28px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:18px}
+
+.photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ph{position:relative;aspect-ratio:1;max-width:100%;border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .rm{position:absolute;top:4px;right:4px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(0,0,0,.62);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ph .rm:focus-visible{outline:3px solid #fff;outline-offset:-3px}
+.ph-wait{display:grid;place-items:center}
+.spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--primary);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.add{aspect-ratio:1;max-width:100%;border:2px dashed var(--line-strong);border-radius:10px;background:var(--surface);color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:600 15px var(--font-head);cursor:pointer}
+.add .i{width:30px;height:30px;color:var(--primary)}
+.add:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+.pend-box{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:6px 14px;display:flex;flex-direction:column;gap:14px}
+.pend-box:has(#edPend:checked){border-color:var(--rot);padding-bottom:16px}
+.switch{display:flex;align-items:center;gap:14px;min-height:56px;cursor:pointer;font:600 18px var(--font-head)}
+.switch input{-webkit-appearance:none;appearance:none;width:54px;height:32px;border-radius:16px;background:var(--line-strong);position:relative;flex:none;margin:0;cursor:pointer;transition:background .15s}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--knob);transition:transform .15s;box-shadow:0 1px 2px rgba(0,0,0,.3)}
+.switch input:checked{background:var(--rot)}
+.switch input:checked::after{transform:translateX(22px)}
+.switch input:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.switch small{display:block;font:400 14px var(--font);color:var(--muted)}
+.pend-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pend-fields .wide{grid-column:1/-1}
+@media (max-width:359px){.pend-fields{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer;font-size:17px}
+.check input{width:26px;height:26px;margin:0;accent-color:var(--dunkelgruen);flex:none}
+.del-zone{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:4px}
+.del-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--danger);border-radius:var(--r);padding:12px}
+.del-confirm p{margin:0;flex:1 1 100%}
+
+.modal{width:calc(100% - 32px);max-width:27rem;border-radius:16px;background:var(--surface);padding:20px}
+.modal[open]{display:flex;flex-direction:column;gap:14px}
+.modal h2{font-size:21px}
+.modal p{margin:0}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1 1 9rem}
+
+.sd-sum{margin:0;font-size:15px;color:var(--muted)}
+.sd-sum strong{color:var(--fg);font-weight:600}
+.input-row{display:flex;gap:8px}
+.input-row input{flex:1;min-width:0}
+.pdf-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:14px}
+.pdf-row{display:flex;gap:12px;align-items:center;min-width:0}
+.pdf-ico{flex:none;width:44px;height:54px;border-radius:6px;background:var(--rot);color:var(--weiss);display:grid;place-items:end center;padding-bottom:8px;font:700 13px var(--font-head);letter-spacing:.06em}
+.pdf-name{font-weight:500;overflow-wrap:anywhere}
+.pdf-status{font-size:14.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pdf-status.err{color:var(--danger-fg);font-weight:500}
+.send-actions{display:flex;flex-direction:column;gap:10px}
+.hint{margin:0;font-size:15px;color:var(--muted);background:var(--tint);border-radius:10px;padding:12px 14px}
+.hint ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:max-content;max-width:calc(100% - 32px);background:var(--fg);color:var(--bg);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);font-size:15.5px}
+.toast-btn{background:none;border:0;color:var(--bg);font:700 15.5px var(--font-head);text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px;cursor:pointer}
+dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation-duration:1.5s!important}}
+</style>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-logo" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4"/><path d="M8.6 12.6l2.4 2.4 4.4-4.6"/></symbol>
+  <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+</svg>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg class="i" aria-hidden="true"><use href="#i-logo"/></svg>
+      <div class="brand-text">
+        <h1 class="app-name">Baustellenprotokoll</h1>
+        <div class="app-sub" id="topSub">Neues Protokoll</div>
+      </div>
+    </div>
+    <button type="button" class="btn-bar" id="btnNew"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Neu</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="banner" id="exampleBanner" hidden>
+    <p><strong>Beispielprotokoll.</strong> So sieht ein ausgefülltes Protokoll aus. Sobald du etwas erfasst, beginnt ein leeres.</p>
+    <button type="button" class="btn primary" id="btnStart">Eigenes Protokoll beginnen</button>
+  </div>
+  <div class="banner warn" id="persistWarn" hidden>
+    <p><strong>Speichern auf diesem Gerät ist nicht möglich.</strong> Lass die Seite offen, bis das Protokoll versendet ist (privater Modus?).</p>
+  </div>
+
+  <details class="card head" id="headBox" open>
+    <summary>
+      <span class="sum-title">Protokoll</span>
+      <span class="sum-meta" id="headSum"></span>
+      <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
+    </summary>
+    <div class="head-grid">
+      <label class="field wide"><span class="lbl">Projekt / Baustelle</span><input type="text" id="fProjekt" autocomplete="off" placeholder="z. B. MFH Lindenweg 12"></label>
+      <label class="field"><span class="lbl">Datum</span><input type="date" id="fDatum"></label>
+      <label class="field"><span class="lbl">Verfasst von</span><input type="text" id="fAutor" autocomplete="name"></label>
+      <label class="field wide"><span class="lbl">Anwesend</span><input type="text" id="fAnwesend" autocomplete="off" placeholder="Firmen / Personen, mit Komma getrennt"></label>
+    </div>
+  </details>
+
+  <section aria-labelledby="hList" style="display:flex;flex-direction:column;gap:12px">
+    <div class="list-head">
+      <h2 id="hList">Rundgang</h2>
+      <span class="stats" id="stats"></span>
+    </div>
+    <ol class="entries" id="list"></ol>
+    <div class="empty" id="empty" hidden>
+      <h3>Noch keine Einträge</h3>
+      <ol class="steps">
+        <li><strong>Foto aufnehmen.</strong> Die Kamera öffnet sich direkt.</li>
+        <li><strong>Notiz schreiben</strong> und bei Bedarf als Pendenz markieren, mit Zuständig und Termin.</li>
+        <li><strong>Senden.</strong> Ein PDF mit allen Fotos und der Pendenzenliste geht per Mail raus.</li>
+      </ol>
+      <p class="small">Alles wird laufend auf diesem Gerät gespeichert.</p>
+    </div>
+  </section>
+</main>
+
+<nav class="actionbar" aria-label="Erfassen und senden">
+  <div class="actionbar-inner">
+    <button type="button" class="btn primary" id="btnPhoto"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Foto</button>
+    <button type="button" class="btn" id="btnNote"><svg class="i" aria-hidden="true"><use href="#i-note"/></svg>Notiz</button>
+    <button type="button" class="btn" id="btnSend"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg>Senden</button>
+  </div>
+  <input type="file" id="camMain" accept="image/*" capture="environment" class="vh" tabindex="-1" aria-hidden="true">
+</nav>
+
+<!-- Eintrag bearbeiten -->
+<dialog id="editor" class="sheet" aria-labelledby="edTitle">
+  <div class="sheet-head">
+    <h2 id="edTitle">Eintrag</h2>
+    <button type="button" class="btn onbar" id="edDone">Fertig</button>
+  </div>
+  <div class="sheet-body">
+    <div class="photos" id="edPhotos"></div>
+    <input type="file" id="edCam" accept="image/*" capture="environment" class="vh" tabindex="-1" aria-hidden="true">
+    <input type="file" id="edGal" accept="image/*" multiple class="vh" tabindex="-1" aria-hidden="true">
+    <label class="field"><span class="lbl">Ort / Bauteil</span><input type="text" id="edOrt" list="dlOrt" autocomplete="off" placeholder="z. B. 2. OG · Treppenhaus"></label>
+    <label class="field"><span class="lbl">Bemerkung</span><textarea id="edText" rows="4" placeholder="Was ist zu sehen, was ist zu tun?"></textarea></label>
+    <div class="pend-box">
+      <label class="switch"><input type="checkbox" id="edPend" role="switch"><span>Pendenz<small>Muss erledigt werden</small></span></label>
+      <div class="pend-fields" id="edPendFields" hidden>
+        <label class="field wide"><span class="lbl">Zuständig</span><input type="text" id="edWer" list="dlWer" autocomplete="off" placeholder="Firma oder Person"></label>
+        <label class="field"><span class="lbl">Termin</span><input type="date" id="edTermin"></label>
+        <label class="check" style="align-self:end"><input type="checkbox" id="edErl"><span>Erledigt</span></label>
+      </div>
+    </div>
+    <div class="del-zone">
+      <button type="button" class="btn ghost warn" id="edDelete">Eintrag löschen</button>
+      <div class="del-confirm" id="edDelConfirm" hidden>
+        <p>Eintrag mit allen Fotos löschen?</p>
+        <button type="button" class="btn" id="edDelNo">Abbrechen</button>
+        <button type="button" class="btn danger" id="edDelYes">Löschen</button>
+      </div>
+    </div>
+  </div>
+  <datalist id="dlOrt"></datalist>
+  <datalist id="dlWer"></datalist>
+</dialog>
+
+<!-- Senden -->
+<dialog id="sendDlg" class="sheet" aria-labelledby="sdTitle">
+  <div class="sheet-head">
+    <h2 id="sdTitle">Protokoll senden</h2>
+    <button type="button" class="btn onbar" id="sdClose">Schliessen</button>
+  </div>
+  <div class="sheet-body">
+    <p class="sd-sum" id="sdSum"></p>
+    <div class="field">
+      <label class="lbl" for="fTo">Empfänger (E-Mail)</label>
+      <div class="input-row">
+        <input type="email" id="fTo" multiple inputmode="email" autocomplete="email" placeholder="bauleitung@firma.ch, …">
+        <button type="button" class="btn icon" id="btnCopyTo" aria-label="Adressen kopieren"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg></button>
+      </div>
+      <span class="field-note" id="toNote">Mehrere Adressen mit Komma trennen.</span>
+    </div>
+    <div class="pdf-card">
+      <div class="pdf-row">
+        <span class="pdf-ico" aria-hidden="true">PDF</span>
+        <div style="min-width:0">
+          <div class="pdf-name" id="pdfName"></div>
+          <div class="pdf-status" id="pdfStatus" role="status"></div>
+        </div>
+      </div>
+      <div class="send-actions">
+        <button type="button" class="btn primary" id="btnShare" disabled></button>
+        <a class="btn" id="mailLink" href="mailto:"><svg class="i" aria-hidden="true"><use href="#i-mail"/></svg>E-Mail öffnen</a>
+        <button type="button" class="btn ghost" id="btnCopyMail">Mailtext kopieren</button>
+      </div>
+    </div>
+    <div class="hint" id="sdHint"></div>
+  </div>
+</dialog>
+
+<!-- Neues Protokoll -->
+<dialog id="newDlg" class="modal" aria-labelledby="nwTitle">
+  <h2 id="nwTitle">Neues Protokoll beginnen?</h2>
+  <p>Das aktuelle Protokoll wird auf diesem Gerät gelöscht. Versende es vorher, falls noch nicht geschehen.</p>
+  <label class="check" id="carryRow"><input type="checkbox" id="carry" checked><span>Offene Pendenzen übernehmen (<span id="carryN">0</span>)</span></label>
+  <p class="small" style="margin:0">Projekt, Verfasser und Anwesende bleiben stehen.</p>
+  <div class="row">
+    <button type="button" class="btn" id="newNo">Abbrechen</button>
+    <button type="button" class="btn danger" id="newYes">Neu beginnen</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+document.documentElement.lang = 'de-CH';
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const pad2 = n => String(n).padStart(2, '0');
+const isoOf = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const todayISO = () => isoOf(new Date());
+const addDays = (iso, n) => { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return isoOf(d); };
+const fmtD = iso => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${d}.${m}.${y}`; };
+const WD = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+const WDL = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
+const fmtDW = iso => iso ? `${WD[new Date(iso + 'T12:00:00').getDay()]} ${fmtD(iso)}` : '';
+const fmtDL = iso => iso ? `${WDL[new Date(iso + 'T12:00:00').getDay()]}, ${fmtD(iso)}` : '';
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+function h(tag, attrs, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+  }
+  return el;
+}
+function icon(name) {
+  const t = document.createElement('template');
+  t.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+  return t.content.firstChild;
+}
+
+const prefs = {
+  get(k) { try { return localStorage.getItem('bp.' + k) || ''; } catch { return ''; } },
+  set(k, v) { try { localStorage.setItem('bp.' + k, v); } catch {} }
+};
+
+/* ---------- Speicher (IndexedDB) ---------- */
+const idb = (() => {
+  let p;
+  const open = () => p || (p = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open('baustellenprotokoll', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => rej(new Error('blocked'));
+    } catch (e) { rej(e); }
+  }));
+  const run = async (mode, fn) => {
+    const db = await open();
+    return new Promise((res, rej) => {
+      const tx = db.transaction('kv', mode);
+      const req = fn(tx.objectStore('kv'));
+      tx.oncomplete = () => res(req ? req.result : undefined);
+      tx.onerror = tx.onabort = () => rej(tx.error);
+    });
+  };
+  return {
+    get: k => run('readonly', s => s.get(k)),
+    set: (k, v) => run('readwrite', s => s.put(v, k)),
+    del: k => run('readwrite', s => s.delete(k))
+  };
+})();
+
+let state = null;
+let persist = true;
+const photoBlob = new Map();
+const photoURL = new Map();
+
+function cachePhoto(id, blob) { photoBlob.set(id, blob); photoURL.set(id, URL.createObjectURL(blob)); }
+function dropPhoto(id) {
+  const u = photoURL.get(id);
+  if (u) URL.revokeObjectURL(u);
+  photoURL.delete(id); photoBlob.delete(id);
+  if (persist) idb.del('p:' + id).catch(() => {});
+}
+function persistFailed() {
+  if (!persist) return;
+  persist = false;
+  $('#persistWarn').hidden = false;
+}
+
+let saveT;
+function save() { if (state.example) return; clearTimeout(saveT); saveT = setTimeout(saveNow, 350); }
+async function saveNow() {
+  clearTimeout(saveT);
+  if (!persist || state.example) return;
+  try { await idb.set('state', state); } catch { persistFailed(); }
+}
+async function storePhoto(id, blob) {
+  if (!persist || state.example) return;
+  try { await idb.set('p:' + id, await blob.arrayBuffer()); } catch { persistFailed(); }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNow(); });
+window.addEventListener('pagehide', () => saveNow());
+
+/* ---------- Datenmodell ---------- */
+const newEntry = o => ({ id: uid(), created: Date.now(), ort: '', text: '', photos: [], pendenz: false, wer: '', termin: '', erledigt: false, carried: '', ...o });
+const blankState = keep => ({
+  v: 1, example: false,
+  projekt: keep.projekt || '', datum: todayISO(),
+  autor: keep.autor != null ? keep.autor : prefs.get('autor'),
+  anwesend: keep.anwesend || '', entries: keep.entries || []
+});
+const isEmptyEntry = e => !e.photos.length && !e.text.trim() && !e.ort.trim() && !e.pendenz;
+
+function examplePhoto(label, seed) {
+  const c = document.createElement('canvas'); c.width = 800; c.height = 600;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, 0, 800, 600);
+  grd.addColorStop(0, '#3F525E'); grd.addColorStop(1, '#066A50');
+  g.fillStyle = grd; g.fillRect(0, 0, 800, 600);
+  g.strokeStyle = 'rgba(214,232,223,.16)'; g.lineWidth = 20;
+  for (let x = -700 + seed * 37; x < 900; x += 96) { g.beginPath(); g.moveTo(x, 600); g.lineTo(x + 600, 0); g.stroke(); }
+  g.fillStyle = 'rgba(255,255,255,.94)'; g.textAlign = 'center';
+  g.font = '700 46px Roboto, Arial, sans-serif'; g.fillText('Beispielfoto', 400, 288);
+  g.font = '400 32px Roboto, Arial, sans-serif'; g.fillText(label, 400, 344);
+  return new Promise(r => c.toBlob(b => r({ blob: b, w: 800, h: 600 }), 'image/jpeg', 0.8));
+}
+async function exampleState() {
+  const t = todayISO();
+  const s = {
+    v: 1, example: true,
+    projekt: 'MFH Lindenweg 12, Winterthur', datum: t,
+    autor: 'B. Keller, Bauleitung',
+    anwesend: 'Huber Bau AG, Elektro Meier AG, Sanitär Frei GmbH',
+    entries: [
+      newEntry({ ort: 'UG · Tiefgarage', text: 'Abdichtung Rampe fertiggestellt. Anschluss an Entwässerungsrinne sauber ausgeführt.' }),
+      newEntry({ ort: '2. OG · Treppenhaus', text: 'Absturzsicherung am Treppenauge fehlt. Vor Arbeitsbeginn morgen anbringen.', pendenz: true, wer: 'Huber Bau AG', termin: addDays(t, 1) }),
+      newEntry({ ort: '3. OG · Whg. 3.2 Küche', text: 'Leerrohre gemäss Plan E-302 verlegt. Unterputzdose für Kochinsel fehlt.', pendenz: true, wer: 'Elektro Meier AG', termin: addDays(t, 7) }),
+      newEntry({ ort: 'Fassade Nord', text: 'Gerüstabnahme nach Umbau Lage 4 nachgereicht, Protokoll liegt im Baubüro.', pendenz: true, wer: 'Huber Bau AG', erledigt: true, carried: addDays(t, -7) })
+    ]
+  };
+  const shots = [[0, 'UG · Rampe', 1], [1, '2. OG · Treppenauge', 2], [2, 'Whg. 3.2 · Küche', 3], [2, 'Whg. 3.2 · Detail', 5]];
+  for (const [i, label, seed] of shots) {
+    const r = await examplePhoto(label, seed);
+    const id = uid(); cachePhoto(id, r.blob);
+    s.entries[i].photos.push({ id, w: r.w, h: r.h });
+  }
+  return s;
+}
+
+function leaveExample(announce) {
+  if (!state.example) return;
+  for (const e of state.entries) for (const p of e.photos) {
+    const u = photoURL.get(p.id); if (u) URL.revokeObjectURL(u);
+    photoURL.delete(p.id); photoBlob.delete(p.id);
+  }
+  state = blankState({});
+  renderAll();
+  $('#headBox').open = true;
+  saveNow();
+  if (announce) toast('Leeres Protokoll bereit');
+}
+
+/* ---------- Bilder ---------- */
+function loadImg(url) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('img')); im.src = url; });
+}
+async function processImage(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const im = await loadImg(url);
+    const MAX = 1600;
+    const s = Math.min(1, MAX / Math.max(im.naturalWidth, im.naturalHeight));
+    const w = Math.max(1, Math.round(im.naturalWidth * s));
+    const hh = Math.max(1, Math.round(im.naturalHeight * s));
+    const c = document.createElement('canvas'); c.width = w; c.height = hh;
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, w, hh);
+    g.drawImage(im, 0, 0, w, hh);
+    const blob = await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('blob')), 'image/jpeg', 0.72));
+    c.width = c.height = 0;
+    return { blob, w, h: hh };
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* ---------- Toast ---------- */
+const toastEl = $('#toast');
+let toastT = null, toastExpire = null;
+function hideToast() { toastEl.hidden = true; clearTimeout(toastT); }
+function toast(msg, action) {
+  if (toastExpire) { const f = toastExpire; toastExpire = null; f(); }
+  const host = document.querySelector('dialog[open]') || document.body;
+  if (toastEl.parentNode !== host) host.append(toastEl);
+  toastEl.textContent = '';
+  toastEl.append(h('span', null, msg));
+  if (action) {
+    toastExpire = action.expire || null;
+    toastEl.append(h('button', { type: 'button', class: 'toast-btn', onclick: () => { toastExpire = null; action.fn(); hideToast(); } }, action.label));
+  }
+  toastEl.hidden = false;
+  clearTimeout(toastT);
+  toastT = setTimeout(() => { hideToast(); if (toastExpire) { const f = toastExpire; toastExpire = null; f(); } }, action ? 6000 : 2800);
+}
+
+/* ---------- Kopf ---------- */
+const headFields = { projekt: $('#fProjekt'), datum: $('#fDatum'), autor: $('#fAutor'), anwesend: $('#fAnwesend') };
+for (const [k, el] of Object.entries(headFields)) {
+  el.addEventListener('focus', () => { if (state.example) leaveExample(false); });
+  el.addEventListener('input', () => {
+    state[k] = el.value;
+    if (k === 'autor') prefs.set('autor', el.value);
+    renderTop(); renderHeadSum(); save();
+  });
+}
+function renderHead() {
+  for (const [k, el] of Object.entries(headFields)) el.value = state[k] || '';
+  renderHeadSum();
+}
+function renderHeadSum() {
+  $('#headSum').textContent = [state.projekt, fmtD(state.datum), state.autor].filter(Boolean).join(' · ') || 'Projekt, Datum, Anwesende';
+}
+function renderTop() {
+  $('#topSub').textContent = [state.projekt || 'Neues Protokoll', fmtD(state.datum)].filter(Boolean).join(' · ');
+}
+
+/* ---------- Liste ---------- */
+function counts() {
+  const pend = state.entries.filter(e => e.pendenz);
+  const open = pend.filter(e => !e.erledigt).length;
+  const photos = state.entries.reduce((a, e) => a + e.photos.length, 0);
+  return { n: state.entries.length, pend: pend.length, open, photos };
+}
+function renderList() {
+  const list = $('#list');
+  list.textContent = '';
+  const c = counts();
+  $('#empty').hidden = c.n > 0;
+  $('#stats').textContent = c.n ? `${plural(c.n, 'Eintrag', 'Einträge')} · ${c.open} ${c.open === 1 ? 'Pendenz' : 'Pendenzen'} offen` : '';
+  const t = todayISO();
+  state.entries.forEach((e, i) => {
+    const n = i + 1;
+    const li = h('li', { class: 'entry' + (e.pendenz ? (e.erledigt ? ' is-done' : ' is-open') : ''), 'data-id': e.id });
+    const body = h('span', { class: 'entry-body' });
+    const top = h('span', { class: 'entry-top' },
+      h('span', { class: 'ort' + (e.ort ? '' : ' none') }, e.ort || 'Ohne Ortsangabe'),
+      e.pendenz ? h('span', { class: 'chip ' + (e.erledigt ? 'chip-done' : 'chip-open') }, e.erledigt ? 'Erledigt' : 'Pendenz') : null
+    );
+    body.append(top);
+    if (e.text) body.append(h('span', { class: 'text' }, e.text));
+    if (e.pendenz && (e.wer || e.termin)) {
+      const late = !e.erledigt && e.termin && e.termin < t;
+      body.append(h('span', { class: 'meta' },
+        e.wer ? h('span', null, e.wer) : null,
+        e.termin ? h('span', { class: late ? 'late' : '' }, (late ? 'überfällig · ' : 'bis ') + fmtDW(e.termin)) : null
+      ));
+    }
+    if (e.carried) body.append(h('span', { class: 'carried' }, `Übernommen vom ${fmtD(e.carried)}`));
+    if (e.photos.length) {
+      const th = h('span', { class: 'thumbs' });
+      const max = e.photos.length > 4 ? 3 : 4;
+      e.photos.slice(0, max).forEach(p => th.append(h('img', { src: photoURL.get(p.id) || '', alt: '', loading: 'lazy' })));
+      if (e.photos.length > max) th.append(h('span', { class: 'more' }, '+' + (e.photos.length - max)));
+      th.append(h('span', { class: 'vh' }, plural(e.photos.length, 'Foto', 'Fotos')));
+      body.append(th);
+    }
+    const main = h('button', { type: 'button', class: 'entry-main', onclick: () => openEditor(e) },
+      h('span', { class: 'num' }, h('span', { class: 'vh' }, 'Eintrag '), String(n)),
+      body
+    );
+    li.append(main);
+    if (e.pendenz) {
+      const chk = h('button', { type: 'button', class: 'entry-check', 'aria-pressed': String(!!e.erledigt), 'aria-label': `Pendenz ${n} erledigt`, 'data-chk': e.id },
+        h('span', { class: 'ring' }, icon('check')));
+      chk.addEventListener('click', () => {
+        e.erledigt = !e.erledigt;
+        save(); renderList();
+        const again = document.querySelector(`[data-chk="${e.id}"]`); if (again) again.focus();
+        toast(e.erledigt ? `Pendenz ${n} erledigt` : `Pendenz ${n} wieder offen`);
+      });
+      li.append(chk);
+    }
+    list.append(li);
+  });
+}
+function renderAll() {
+  renderTop(); renderHead(); renderList();
+  $('#exampleBanner').hidden = !state.example;
+}
+
+/* ---------- Editor ---------- */
+const editor = $('#editor');
+const ed = { ort: $('#edOrt'), text: $('#edText'), pend: $('#edPend'), wer: $('#edWer'), termin: $('#edTermin'), erl: $('#edErl') };
+let cur = null;
+let pending = 0;
+
+function autoGrow(el) { el.style.height = 'auto'; el.style.height = Math.max(el.scrollHeight + 3, 120) + 'px'; }
+function fillDatalists() {
+  const fill = (id, vals) => {
+    const dl = $(id); dl.textContent = '';
+    [...new Set(vals.map(v => (v || '').trim()).filter(Boolean))].slice(-40).forEach(v => dl.append(h('option', { value: v })));
+  };
+  fill('#dlOrt', state.entries.map(e => e.ort));
+  fill('#dlWer', [...(state.anwesend || '').split(','), ...state.entries.map(e => e.wer)]);
+}
+function openEditor(entry, opts = {}) {
+  cur = entry;
+  $('#edTitle').textContent = `Eintrag ${state.entries.indexOf(entry) + 1}`;
+  ed.ort.value = entry.ort; ed.text.value = entry.text;
+  ed.pend.checked = entry.pendenz; ed.wer.value = entry.wer; ed.termin.value = entry.termin; ed.erl.checked = entry.erledigt;
+  $('#edPendFields').hidden = !entry.pendenz;
+  $('#edDelConfirm').hidden = true; $('#edDelete').hidden = false;
+  fillDatalists();
+  renderEdPhotos();
+  if (!editor.open) editor.showModal();
+  editor.querySelector('.sheet-body').scrollTop = 0;
+  autoGrow(ed.text);
+  if (opts.focusText) ed.text.focus();
+  else $('#edDone').focus();
+}
+function renderEdPhotos() {
+  const g = $('#edPhotos');
+  g.textContent = '';
+  cur.photos.forEach((p, i) => {
+    g.append(h('div', { class: 'ph' },
+      h('img', { src: photoURL.get(p.id) || '', alt: `Foto ${i + 1}` }),
+      h('button', { type: 'button', class: 'rm', 'aria-label': `Foto ${i + 1} entfernen`, onclick: () => removePhoto(i) }, icon('x'))
+    ));
+  });
+  for (let k = 0; k < pending; k++) g.append(h('div', { class: 'ph ph-wait', 'aria-label': 'Foto wird verarbeitet' }, h('span', { class: 'spinner' })));
+  g.append(
+    h('button', { type: 'button', class: 'add', onclick: () => $('#edCam').click() }, icon('cam'), 'Kamera'),
+    h('button', { type: 'button', class: 'add', onclick: () => $('#edGal').click() }, icon('image'), 'Galerie')
+  );
+}
+function removePhoto(i) {
+  const entry = cur;
+  const [p] = entry.photos.splice(i, 1);
+  save(); renderEdPhotos();
+  toast('Foto entfernt', {
+    label: 'Rückgängig',
+    fn: () => { entry.photos.splice(i, 0, p); save(); if (cur === entry && editor.open) renderEdPhotos(); renderList(); },
+    expire: () => { if (!entry.photos.includes(p)) dropPhoto(p.id); }
+  });
+}
+async function addFiles(files, entry) {
+  if (!files.length) return;
+  pending += files.length;
+  if (cur === entry && editor.open) renderEdPhotos();
+  let failed = 0;
+  for (const f of files) {
+    try {
+      const r = await processImage(f);
+      const id = uid();
+      cachePhoto(id, r.blob);
+      entry.photos.push({ id, w: r.w, h: r.h });
+      await storePhoto(id, r.blob);
+    } catch { failed++; }
+    pending--;
+    if (cur === entry && editor.open) renderEdPhotos();
+  }
+  save(); renderList();
+  if (failed) toast(failed === 1 ? 'Ein Foto konnte nicht gelesen werden.' : `${failed} Fotos konnten nicht gelesen werden.`);
+}
+
+ed.ort.addEventListener('input', () => { cur.ort = ed.ort.value; save(); });
+ed.text.addEventListener('input', () => { cur.text = ed.text.value; autoGrow(ed.text); save(); });
+ed.pend.addEventListener('change', () => { cur.pendenz = ed.pend.checked; $('#edPendFields').hidden = !cur.pendenz; save(); });
+ed.wer.addEventListener('input', () => { cur.wer = ed.wer.value; save(); });
+ed.termin.addEventListener('input', () => { cur.termin = ed.termin.value; save(); });
+ed.termin.addEventListener('change', () => { cur.termin = ed.termin.value; save(); });
+ed.erl.addEventListener('change', () => { cur.erledigt = ed.erl.checked; save(); });
+
+$('#edDone').addEventListener('click', () => editor.close());
+editor.addEventListener('close', () => {
+  const e = cur;
+  if (!e) return;
+  if (isEmptyEntry(e) && !pending) {
+    const i = state.entries.indexOf(e);
+    if (i > -1) state.entries.splice(i, 1);
+  }
+  save(); renderList();
+  const btn = document.querySelector(`[data-id="${e.id}"] .entry-main`);
+  if (btn) btn.focus();
+});
+$('#edDelete').addEventListener('click', () => { $('#edDelete').hidden = true; $('#edDelConfirm').hidden = false; $('#edDelNo').focus(); });
+$('#edDelNo').addEventListener('click', () => { $('#edDelConfirm').hidden = true; $('#edDelete').hidden = false; $('#edDelete').focus(); });
+$('#edDelYes').addEventListener('click', () => {
+  const e = cur;
+  const i = state.entries.indexOf(e);
+  if (i > -1) state.entries.splice(i, 1);
+  e.photos.forEach(p => dropPhoto(p.id));
+  cur = null;
+  editor.close();
+  save(); renderList();
+  toast(`Eintrag ${i + 1} gelöscht`);
+});
+
+for (const id of ['#edCam', '#edGal']) {
+  const inp = $(id);
+  inp.addEventListener('change', () => { const files = [...inp.files]; inp.value = ''; if (cur) addFiles(files, cur); });
+}
+
+/* ---------- Erfassen ---------- */
+$('#btnPhoto').addEventListener('click', () => $('#camMain').click());
+$('#camMain').addEventListener('change', () => {
+  const inp = $('#camMain');
+  const files = [...inp.files]; inp.value = '';
+  if (!files.length) return;
+  leaveExample(false);
+  const e = newEntry();
+  state.entries.push(e);
+  renderList();
+  openEditor(e, { focusText: false });
+  addFiles(files, e);
+});
+$('#btnNote').addEventListener('click', () => {
+  leaveExample(false);
+  const e = newEntry();
+  state.entries.push(e);
+  renderList();
+  openEditor(e, { focusText: true });
+});
+$('#btnStart').addEventListener('click', () => leaveExample(true));
+
+/* ---------- Neues Protokoll ---------- */
+const newDlg = $('#newDlg');
+$('#btnNew').addEventListener('click', () => {
+  if (state.example) { leaveExample(true); return; }
+  const open = state.entries.filter(e => e.pendenz && !e.erledigt).length;
+  $('#carryRow').hidden = !open;
+  $('#carryN').textContent = open;
+  $('#carry').checked = true;
+  newDlg.showModal();
+});
+$('#newNo').addEventListener('click', () => newDlg.close());
+$('#newYes').addEventListener('click', async () => {
+  const carry = !$('#carryRow').hidden && $('#carry').checked;
+  const kept = carry ? state.entries.filter(e => e.pendenz && !e.erledigt).map(e => ({ ...e, carried: e.carried || state.datum })) : [];
+  const keepIds = new Set(kept.flatMap(e => e.photos.map(p => p.id)));
+  for (const e of state.entries) for (const p of e.photos) if (!keepIds.has(p.id)) dropPhoto(p.id);
+  state = blankState({ projekt: state.projekt, autor: state.autor, anwesend: state.anwesend, entries: kept });
+  newDlg.close();
+  await saveNow();
+  renderAll();
+  $('#headBox').open = true;
+  window.scrollTo(0, 0);
+  toast(kept.length ? `Neues Protokoll · ${plural(kept.length, 'Pendenz', 'Pendenzen')} übernommen` : 'Neues Protokoll begonnen');
+});
+
+/* ---------- PDF ---------- */
+const pdfT = s => String(s == null ? '' : s).normalize('NFC')
+  .replace(/[‘’‚′]/g, "'")
+  .replace(/[“”„″]/g, '"')
+  .replace(/[–—−]/g, '-')
+  .replace(/…/g, '...')
+  .replace(/[•●]/g, '-')
+  .replace(/€/g, 'EUR')
+  .replace(/[^\t\n\r\x20-\x7E\xA0-\xFF]/g, '');
+
+function fileName() {
+  const slug = (state.projekt || '').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return `Baustellenprotokoll${slug ? '_' + slug : ''}_${state.datum || todayISO()}.pdf`;
+}
+
+async function buildPdf(recipients) {
+  if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('nolib');
+  const bytes = new Map();
+  for (const e of state.entries) for (const p of e.photos) {
+    const b = photoBlob.get(p.id);
+    if (b) bytes.set(p.id, new Uint8Array(await b.arrayBuffer()));
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+  const W = 210, H = 297, M = 16, CW = W - 2 * M, BOTTOM = H - 18;
+  const DG = [6, 106, 80], HG = [113, 169, 52], ROT = [187, 30, 16], AN = [63, 82, 94], HB = [214, 232, 223], BK = [16, 22, 20], WH = [255, 255, 255];
+  const LHF = 1.3;
+  doc.setLineHeightFactor(LHF);
+  const lh = pt => pt * 0.3528 * LHF;
+  const font = (style, size, color) => { doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...(color || BK)); };
+  const S = pdfT;
+  const t = todayISO();
+  let y = 0;
+  const newPage = () => { doc.addPage(); y = M; };
+  const need = hgt => { if (y + hgt > BOTTOM) newPage(); };
+  const hr = (color, w) => { doc.setDrawColor(...color); doc.setLineWidth(w); doc.line(M, y, W - M, y); };
+
+  doc.setProperties({ title: S(`Baustellenprotokoll ${state.projekt} ${fmtD(state.datum)}`), author: S(state.autor), creator: 'Baustellenprotokoll' });
+
+  // Kopfband
+  doc.setFillColor(...DG); doc.rect(0, 0, W, 32, 'F');
+  doc.setFillColor(...HG); doc.rect(0, 32, W, 1.8, 'F');
+  font('bold', 22, WH); doc.text('Baustellenprotokoll', M, 15.5);
+  font('normal', 11.5, WH);
+  doc.text(doc.splitTextToSize(S(state.projekt) || 'Ohne Projektangabe', CW - 40)[0], M, 24.5);
+  doc.text(fmtD(state.datum), W - M, 24.5, { align: 'right' });
+  y = 45;
+
+  // Metadaten
+  const c = counts();
+  const meta = [
+    ['Projekt', state.projekt], ['Datum', fmtDL(state.datum)], ['Verfasst von', state.autor],
+    ['Anwesend', state.anwesend], ['Verteiler', recipients.join(', ')],
+    ['Umfang', `${plural(c.n, 'Eintrag', 'Einträge')}, ${plural(c.photos, 'Foto', 'Fotos')}, ${plural(c.pend, 'Pendenz', 'Pendenzen')} (${c.open} offen)`]
+  ].filter(r => r[1] && String(r[1]).trim());
+  for (const [k, v] of meta) {
+    font('normal', 10);
+    const lines = doc.splitTextToSize(S(v), CW - 34);
+    need(lines.length * lh(10) + 2);
+    font('bold', 7.5, AN); doc.text(k.toUpperCase(), M, y);
+    font('normal', 10); doc.text(lines, M + 34, y);
+    y += lines.length * lh(10) + 2.2;
+  }
+  y += 3; hr(HB, 0.6); y += 11;
+
+  const heading = (title, sub) => {
+    need(22);
+    font('bold', 14, DG); doc.text(title, M, y);
+    if (sub) { font('normal', 9.5, AN); doc.text(S(sub), W - M, y, { align: 'right' }); }
+    y += 3; hr(DG, 0.5); y += 5;
+  };
+
+  // Pendenzen
+  const pend = state.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
+  if (pend.length) {
+    heading('Pendenzen', `${c.open} offen · ${c.pend - c.open} erledigt`);
+    const cols = [{ k: 'Nr.', w: 11 }, { k: 'Pendenz', w: CW - 11 - 42 - 24 - 20 }, { k: 'Zuständig', w: 42 }, { k: 'Termin', w: 24 }, { k: 'Status', w: 20 }];
+    const pd = 2, fs = 9.5, L = lh(fs);
+    const drawHead = () => {
+      doc.setFillColor(...HB); doc.rect(M, y, CW, 7.5, 'F');
+      font('bold', 8.5); let x = M;
+      for (const col of cols) { doc.text(S(col.k), x + pd, y + 5); x += col.w; }
+      y += 7.5;
+    };
+    drawHead();
+    for (const { e, n } of pend) {
+      font('normal', fs);
+      const desc = doc.splitTextToSize(S([e.ort, e.text].filter(Boolean).join(': ') || 'Ohne Beschreibung'), cols[1].w - 2 * pd);
+      const wer = doc.splitTextToSize(S(e.wer) || '-', cols[2].w - 2 * pd);
+      const rh = Math.max(desc.length, wer.length, 1) * L + 2 * pd + 0.6;
+      if (y + rh > BOTTOM) { newPage(); drawHead(); }
+      const by = y + pd + fs * 0.3528 * 0.95;
+      let x = M;
+      font('bold', fs); doc.text(String(n), x + pd, by); x += cols[0].w;
+      font('normal', fs); doc.text(desc, x + pd, by); x += cols[1].w;
+      doc.text(wer, x + pd, by); x += cols[2].w;
+      const late = !e.erledigt && e.termin && e.termin < t;
+      font(late ? 'bold' : 'normal', fs, late ? ROT : BK); doc.text(e.termin ? fmtD(e.termin) : '-', x + pd, by); x += cols[3].w;
+      font('bold', fs, e.erledigt ? DG : ROT); doc.text(e.erledigt ? 'erledigt' : 'offen', x + pd, by);
+      y += rh; hr(HB, 0.3);
+    }
+    y += 12;
+  }
+
+  // Rundgang
+  if (state.entries.length) {
+    heading('Rundgang', `${plural(c.n, 'Eintrag', 'Einträge')} · ${plural(c.photos, 'Foto', 'Fotos')}`);
+    const X = M + 11, TW = CW - 11, GAP = 4, COLW = (TW - GAP) / 2, MAXH = 92;
+    state.entries.forEach((e, i) => {
+      const n = i + 1;
+      font('bold', 11.5);
+      const ortLines = doc.splitTextToSize(S(e.ort) || 'Ohne Ortsangabe', TW - (e.pendenz ? 42 : 0));
+      font('normal', 10);
+      const textLines = e.text ? doc.splitTextToSize(S(e.text), TW) : [];
+      const metaTxt = e.pendenz ? [e.wer && `Zuständig: ${e.wer}`, e.termin && `Termin: ${fmtD(e.termin)}`].filter(Boolean).join('     ') : '';
+      const headH = Math.max(8, 5.6 + (ortLines.length - 1) * lh(11.5) + 2.4);
+      need(headH + (metaTxt ? 5 : 0) + Math.min(textLines.length, 3) * lh(10) + 6);
+
+      const badge = e.pendenz ? (e.erledigt ? HG : ROT) : DG;
+      doc.setFillColor(...badge); doc.roundedRect(M, y, 8, 8, 1.2, 1.2, 'F');
+      font('bold', 10.5, e.pendenz && e.erledigt ? BK : WH); doc.text(String(n), M + 4, y + 5.6, { align: 'center' });
+      font('bold', 11.5, e.ort ? BK : AN); doc.text(ortLines, X, y + 5.6);
+      if (e.pendenz) { font('bold', 8.5, e.erledigt ? DG : ROT); doc.text(e.erledigt ? 'PENDENZ ERLEDIGT' : 'PENDENZ OFFEN', W - M, y + 5.6, { align: 'right' }); }
+      y += headH + 1.5;
+      if (metaTxt) { font('normal', 9, AN); doc.text(S(metaTxt), X, y + 2.8); y += 5; }
+      if (e.carried) { font('italic', 8.5, AN); doc.text(S(`Übernommen aus Protokoll vom ${fmtD(e.carried)}`), X, y + 2.8); y += 4.8; }
+      if (textLines.length) {
+        font('normal', 10);
+        y += 0.6;
+        for (const line of textLines) {
+          if (y + lh(10) > BOTTOM) { newPage(); font('normal', 10); }
+          doc.text(line, X, y + 3.5); y += lh(10);
+        }
+      }
+      const ps = e.photos.filter(p => bytes.has(p.id));
+      for (let k = 0; k < ps.length; k += 2) {
+        const row = ps.slice(k, k + 2).map(p => {
+          let w = COLW, hh = COLW * p.h / p.w;
+          if (hh > MAXH) { hh = MAXH; w = hh * p.w / p.h; }
+          return { p, w, h: hh };
+        });
+        const rowH = Math.max(...row.map(r => r.h));
+        if (y + 3 + rowH > BOTTOM) newPage(); else y += 3;
+        row.forEach((r, j) => {
+          const px = X + j * (COLW + GAP);
+          doc.addImage(bytes.get(r.p.id), 'JPEG', px, y, r.w, r.h, 'img' + r.p.id, 'NONE');
+          doc.setDrawColor(...HB); doc.setLineWidth(0.3); doc.rect(px, y, r.w, r.h, 'S');
+        });
+        y += rowH;
+      }
+      y += 5; if (i < state.entries.length - 1) { hr(HB, 0.3); y += 6; }
+    });
+  }
+
+  // Fusszeile
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setDrawColor(...HB); doc.setLineWidth(0.4); doc.line(M, H - 12, W - M, H - 12);
+    font('normal', 8, AN);
+    doc.text(doc.splitTextToSize(S(`Baustellenprotokoll ${fmtD(state.datum)}${state.projekt ? ' · ' + state.projekt : ''}`), CW - 30)[0], M, H - 7.5);
+    doc.text(`Seite ${i} von ${pages}`, W - M, H - 7.5, { align: 'right' });
+  }
+  return { blob: doc.output('blob'), pages, name: fileName() };
+}
+
+/* ---------- Mail ---------- */
+function parseTo(s) { return (s || '').split(/[,;\s]+/).map(x => x.trim()).filter(Boolean); }
+const emailOk = a => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a);
+function subject() { return `Baustellenprotokoll${state.projekt ? ' ' + state.projekt : ''} – ${fmtD(state.datum)}`; }
+function mailBody(limit) {
+  const L = ['Guten Tag', '', `Im Anhang das Baustellenprotokoll vom ${fmtD(state.datum)}${state.projekt ? ' (' + state.projekt + ')' : ''} als PDF mit allen Fotos.`];
+  const pend = state.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
+  if (pend.length) {
+    const open = pend.filter(x => !x.e.erledigt).length;
+    L.push('', `Pendenzen (${open} offen):`);
+    for (const { e, n } of pend) {
+      let d = [e.ort, e.text].filter(Boolean).join(': ').replace(/\s+/g, ' ');
+      if (d.length > 110) d = d.slice(0, 107) + '...';
+      L.push(`${n}. ${e.erledigt ? '[erledigt] ' : ''}${d || 'Ohne Beschreibung'}${e.wer ? ' – ' + e.wer : ''}${e.termin ? ', bis ' + fmtD(e.termin) : ''}`);
+    }
+  }
+  L.push('', 'Freundliche Grüsse');
+  if (state.autor) L.push(state.autor);
+  let s = L.join('\n');
+  if (limit && s.length > limit) s = s.slice(0, limit) + '\n... (vollständige Liste im PDF)';
+  return s;
+}
+function mailtoHref() {
+  const to = parseTo($('#fTo').value).map(encodeURIComponent).join(',');
+  return `mailto:${to}?subject=${encodeURIComponent(subject())}&body=${encodeURIComponent(mailBody(1400).replace(/\n/g, '\r\n'))}`;
+}
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); toast(okMsg); return; } catch {}
+  try {
+    const ta = h('textarea', { style: 'position:fixed;top:0;left:0;opacity:0', readonly: true });
+    ta.value = text; (document.querySelector('dialog[open]') || document.body).append(ta);
+    ta.select(); const ok = document.execCommand('copy'); ta.remove();
+    toast(ok ? okMsg : 'Kopieren nicht möglich. Bitte manuell markieren.');
+  } catch { toast('Kopieren nicht möglich. Bitte manuell markieren.'); }
+}
+
+/* ---------- Senden ---------- */
+const sendDlg = $('#sendDlg');
+const FRAMED = (() => { try { return window.self !== window.top; } catch { return true; } })();
+const HAS_CLAUDE = !!(window.claude && typeof window.claude.use === 'function');
+let DL = null, dlResolved = !HAS_CLAUDE;
+const dlReady = HAS_CLAUDE
+  ? Promise.resolve().then(() => window.claude.use('downloads')).then(d => { DL = d; }).catch(() => {}).finally(() => { dlResolved = true; updateShareUI(); })
+  : Promise.resolve();
+const coarse = () => { try { return matchMedia('(pointer: coarse)').matches; } catch { return false; } };
+function canShareFiles() {
+  try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 't.pdf', { type: 'application/pdf' })] })); } catch { return false; }
+}
+function shareMode() {
+  if (DL) return 'dl';
+  if (HAS_CLAUDE && FRAMED) return dlResolved ? 'blocked' : 'dl';
+  if (canShareFiles()) return 'share';
+  return 'download';
+}
+
+let pdf = null, genToken = 0, regenT = null;
+function updateShareUI() {
+  const btn = $('#btnShare');
+  const mode = shareMode();
+  const shareLike = mode === 'share' || (mode === 'dl' && coarse());
+  btn.textContent = '';
+  btn.append(icon(shareLike ? 'share' : 'down'), shareLike ? 'PDF teilen' : (mode === 'download' ? 'PDF herunterladen' : 'PDF speichern'));
+  btn.disabled = !pdf || mode === 'blocked';
+  const hint = $('#sdHint');
+  hint.textContent = '';
+  if (mode === 'blocked') {
+    hint.append(h('p', { style: 'margin:0' }, 'In dieser Ansicht kann das PDF nicht gespeichert werden. Öffne die Seite direkt im Browser.'));
+  } else if (shareLike) {
+    hint.append(h('ol', null,
+      h('li', null, '«PDF teilen» tippen und «Mail» wählen. Das PDF ist angehängt.'),
+      h('li', null, 'Empfänger einfügen (Kopier-Knopf neben dem Adressfeld) und senden.')));
+  } else {
+    hint.append(h('ol', null,
+      h('li', null, 'PDF speichern.'),
+      h('li', null, '«E-Mail öffnen»: Empfänger, Betreff und Pendenzen sind ausgefüllt.'),
+      h('li', null, 'Gespeichertes PDF anhängen und senden.')));
+  }
+}
+function updateMail() {
+  $('#mailLink').href = mailtoHref();
+  const bad = parseTo($('#fTo').value).filter(a => !emailOk(a));
+  const note = $('#toNote');
+  note.textContent = bad.length ? `Bitte prüfen: ${bad.join(', ')}` : 'Mehrere Adressen mit Komma trennen.';
+  note.classList.toggle('err', bad.length > 0);
+}
+async function generate() {
+  const my = ++genToken;
+  pdf = null;
+  const st = $('#pdfStatus');
+  st.classList.remove('err');
+  $('#pdfName').textContent = fileName();
+  updateShareUI();
+  if (!state.entries.length) { st.textContent = 'Noch keine Einträge erfasst.'; return; }
+  st.textContent = 'PDF wird erstellt …';
+  try {
+    await new Promise(r => setTimeout(r, 30));
+    const r = await buildPdf(parseTo($('#fTo').value));
+    if (my !== genToken) return;
+    pdf = r;
+    const mb = r.blob.size / 1048576;
+    st.textContent = `Bereit · ${plural(r.pages, 'Seite', 'Seiten')} · ${mb < 1 ? Math.max(1, Math.round(r.blob.size / 1024)) + ' KB' : mb.toFixed(1) + ' MB'}` + (mb > 15 ? ' · für manche Mailserver zu gross' : '');
+  } catch (err) {
+    if (my !== genToken) return;
+    st.classList.add('err');
+    st.textContent = err && err.message === 'nolib'
+      ? 'Die PDF-Funktion ist nicht geladen. Mit Internet verbinden und die Seite neu laden.'
+      : 'Das PDF konnte nicht erstellt werden. Bitte nochmals versuchen.';
+  }
+  updateShareUI();
+}
+$('#btnSend').addEventListener('click', () => {
+  const c = counts();
+  const sum = $('#sdSum'); sum.textContent = '';
+  sum.append(h('strong', null, state.projekt || 'Ohne Projektangabe'), ` · ${fmtD(state.datum)} · ${plural(c.n, 'Eintrag', 'Einträge')}, ${plural(c.photos, 'Foto', 'Fotos')}, ${c.open} ${c.open === 1 ? 'Pendenz' : 'Pendenzen'} offen`);
+  $('#fTo').value = prefs.get('to');
+  updateMail();
+  sendDlg.showModal();
+  $('#sdClose').focus();
+  generate();
+});
+$('#sdClose').addEventListener('click', () => sendDlg.close());
+$('#fTo').addEventListener('input', () => {
+  prefs.set('to', $('#fTo').value);
+  updateMail();
+  clearTimeout(regenT);
+  regenT = setTimeout(generate, 700);
+});
+$('#btnCopyTo').addEventListener('click', () => {
+  const to = parseTo($('#fTo').value).join(', ');
+  if (!to) { toast('Noch keine Adresse eingetragen.'); $('#fTo').focus(); return; }
+  copyText(to, 'Adressen kopiert');
+});
+$('#btnCopyMail').addEventListener('click', () => copyText(`${subject()}\n\n${mailBody()}`, 'Betreff und Mailtext kopiert'));
+
+function downloadFallback() {
+  const url = URL.createObjectURL(pdf.blob);
+  const a = h('a', { href: url, download: pdf.name, style: 'display:none' });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+$('#btnShare').addEventListener('click', async () => {
+  if (!pdf) return;
+  const mode = shareMode();
+  if (mode === 'share') {
+    const file = new File([pdf.blob], pdf.name, { type: 'application/pdf' });
+    navigator.share({ files: [file], title: subject(), text: mailBody(1400) })
+      .catch(err => { if (!err || err.name !== 'AbortError') downloadFallback(); });
+    return;
+  }
+  if (mode === 'download') { downloadFallback(); return; }
+  if (mode === 'dl') {
+    if (!dlResolved) await dlReady;
+    if (!DL) { updateShareUI(); return; }
+    try {
+      await DL.save({ filename: pdf.name, data: pdf.blob });
+    } catch (err) {
+      const code = err && err.code;
+      if (code === 'declined') return;
+      if (code === 'rate_limited') { toast('Bitte einen Moment warten und nochmals tippen.'); return; }
+      toast('Speichern ist in dieser Ansicht nicht möglich.');
+    }
+  }
+});
+
+/* ---------- Start ---------- */
+async function init() {
+  let saved = null;
+  try { saved = await idb.get('state'); } catch { persistFailed(); }
+  if (saved && saved.v === 1 && Array.isArray(saved.entries)) {
+    state = saved;
+    for (const e of state.entries) {
+      const ok = [];
+      for (const p of e.photos) {
+        try {
+          const buf = await idb.get('p:' + p.id);
+          if (buf) { cachePhoto(p.id, new Blob([buf], { type: 'image/jpeg' })); ok.push(p); }
+        } catch {}
+      }
+      e.photos = ok;
+    }
+  } else {
+    state = await exampleState();
+  }
+  renderAll();
+  $('#headBox').open = !state.example && !(state.projekt && state.entries.length);
+  updateShareUI();
+}
+$('#topSub').textContent = 'Wird geladen …';
+init();
+})();
+</script>
+
+</body>
+</html>
