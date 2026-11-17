@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Baustellenprotokoll: Fotos aufnehmen, Notizen und Pendenzen erfassen, als PDF per Mail versenden.">
+<meta name="description" content="Baustellenprotokoll: Projekte anlegen, Fotos aufnehmen, Pendenzen erfassen, als PDF per Mail versenden.">
 <meta name="apple-mobile-web-app-title" content="Baustelle">
 <title>Baustellenprotokoll</title>
 <meta name="theme-color" content="#066A50">
@@ -13,17 +13,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
 :root{
-  /* Layout: eine daumenfreundliche Spalte (max 44rem); Markenbalken oben sticky, Aktionsleiste unten fix */
+  /* Layout: eine daumenfreundliche Spalte (max 44rem); Markenbalken oben sticky, Aktionsleiste unten fix.
+     Ebenen: Projekte (Ordner) > Protokolle (Nr. 1, 2, 3 …) > Einträge */
   --dunkelgruen:#066A50; --hellgruen:#71A934; --rot:#BB1E10; --anthrazit:#3F525E; --hellblau:#D6E8DF; --weiss:#FFFFFF;
   --bg:#F1F6F3; --surface:#FFFFFF; --surface-2:#E6F0EA; --line:#C5D6CD; --line-strong:#8FA79B;
   --fg:#0A1511; --muted:#3F525E;
   --primary:#066A50; --on-primary:#FFFFFF; --primary-press:#04503C;
   --danger:#BB1E10; --danger-fg:#BB1E10; --on-danger:#FFFFFF;
-  --ok-bg:#71A934; --ok-fg:#0A1511; --ok-text:#066A50;
+  --ok-fg:#0A1511; --green-text:#066A50;
   --tint:#D6E8DF; --focus:#066A50; --knob:#FFFFFF;
   --bar:#066A50; --on-bar:#FFFFFF;
   --scrim:rgba(5,24,18,.55);
-  --shadow:0 1px 2px rgba(4,40,30,.10),0 6px 20px rgba(4,40,30,.06);
   --font:"Roboto",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   --font-head:"Roboto Condensed","Roboto","Arial Narrow",system-ui,sans-serif;
   --r:12px;
@@ -33,8 +33,8 @@
     --bg:#0A1612; --surface:#11211C; --surface-2:#173029; --line:#294239; --line-strong:#4D6A5E;
     --fg:#E6EFEA; --muted:#A2B5AC;
     --primary:#71A934; --on-primary:#0A1511; --primary-press:#5E9128;
-    --danger-fg:#FF8172; --ok-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
-    --scrim:rgba(0,0,0,.65); --shadow:0 1px 2px rgba(0,0,0,.4);
+    --danger-fg:#FF8172; --green-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
+    --scrim:rgba(0,0,0,.65);
     color-scheme:dark;
   }
 }
@@ -42,8 +42,8 @@
   --bg:#0A1612; --surface:#11211C; --surface-2:#173029; --line:#294239; --line-strong:#4D6A5E;
   --fg:#E6EFEA; --muted:#A2B5AC;
   --primary:#71A934; --on-primary:#0A1511; --primary-press:#5E9128;
-  --danger-fg:#FF8172; --ok-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
-  --scrim:rgba(0,0,0,.65); --shadow:0 1px 2px rgba(0,0,0,.4);
+  --danger-fg:#FF8172; --green-text:#8FC85A; --tint:#163A2F; --focus:#A6D873;
+  --scrim:rgba(0,0,0,.65);
   color-scheme:dark;
 }
 
@@ -59,28 +59,29 @@ button{font:inherit;color:inherit}
 
 /* Topbar */
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bar);color:var(--on-bar);border-bottom:4px solid var(--hellgruen)}
-.topbar-inner{max-width:44rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px;display:flex;align-items:center;gap:12px;min-height:62px}
-.brand{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.brand .i{width:28px;height:28px}
-.brand-text{min-width:0}
-.app-name{font:700 20px/1.1 var(--font-head);letter-spacing:.01em}
+.topbar-inner{max-width:44rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:9px;display:flex;align-items:center;gap:10px;min-height:64px}
+.topbar .logo{width:28px;height:28px}
+.back{display:grid;place-items:center;width:44px;height:44px;margin-left:-10px;border-radius:10px;border:0;background:transparent;color:var(--on-bar);cursor:pointer;flex:none}
+.back .i{width:30px;height:30px}
+.back:focus-visible{outline:3px solid var(--on-bar);outline-offset:-2px}
+.brand-text{min-width:0;flex:1}
+.app-name{font:700 20px/1.15 var(--font-head);letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .app-sub{font-size:14px;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.btn-bar{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:10px;border:1.5px solid currentColor;background:transparent;color:var(--on-bar);font:600 16px var(--font-head);cursor:pointer;flex:none}
-.btn-bar:focus-visible{outline:3px solid var(--on-bar);outline-offset:2px}
 
 /* Main */
 .wrap{max-width:44rem;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px calc(112px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:14px}
 
-.banner{background:var(--tint);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between}
-.banner p{margin:0;flex:1 1 16rem;min-width:0}
-.banner.warn{background:var(--surface);border-color:var(--danger);color:var(--fg)}
+.banner{background:var(--tint);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.banner p{margin:0}
+.banner.warn{background:var(--surface);border-color:var(--danger)}
 .banner.warn strong{color:var(--danger-fg)}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 details.head>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;cursor:pointer;border-radius:var(--r)}
 details.head>summary::-webkit-details-marker{display:none}
 details.head>summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-.sum-title{font:700 17px var(--font-head)}
+.sum-title{font:700 17px var(--font-head);flex:none}
 .sum-meta{flex:1;min-width:0;color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chev{transition:transform .15s}
 details[open] .chev{transform:rotate(180deg)}
@@ -90,17 +91,32 @@ details[open] .chev{transform:rotate(180deg)}
 
 .field{display:flex;flex-direction:column;gap:6px;min-width:0}
 .lbl{font:600 13px/1.2 var(--font-head);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-input[type=text],input[type=email],input[type=date],input:not([type]),textarea{font:inherit;font-size:17px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line-strong);border-radius:10px;padding:11px 12px;min-height:50px;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}
+input[type=text],input[type=email],input[type=date],textarea{font:inherit;font-size:17px;color:var(--fg);background:var(--surface);border:1.5px solid var(--line-strong);border-radius:10px;padding:11px 12px;min-height:50px;width:100%;max-width:100%;-webkit-appearance:none;appearance:none}
 input[type=date]{min-width:0;display:block}
 textarea{min-height:120px;resize:vertical;line-height:1.45}
 input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outline-offset:1px;border-color:var(--focus)}
 .field-note{font-size:14px;color:var(--muted)}
 .field-note.err{color:var(--danger-fg);font-weight:500}
 
-/* List */
 .list-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .list-head h2{font-size:22px}
 .stats{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums}
+
+/* Ordner- und Protokollzeilen */
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.row-main{width:100%;display:flex;align-items:center;gap:14px;padding:12px 12px 12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);text-align:left;cursor:pointer;min-height:76px}
+.row-main:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.row-main>.i{color:var(--muted)}
+.folder-ico{flex:none;width:48px;height:48px;border-radius:10px;background:var(--tint);color:var(--green-text);display:grid;place-items:center}
+.folder-ico .i{width:28px;height:28px}
+.row-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.row-title{font:600 18px/1.25 var(--font-head);overflow-wrap:anywhere}
+.row-meta{font-size:14.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.nr{flex:none;width:48px;height:52px;border-radius:8px;background:var(--dunkelgruen);color:var(--weiss);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-family:var(--font-head)}
+.nr small{font-size:11px;font-weight:600;letter-spacing:.08em;opacity:.9}
+.nr b{font-size:22px;font-weight:700;margin-top:3px;font-variant-numeric:tabular-nums}
+
+/* Einträge */
 .entries{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
 .entry{display:flex;align-items:stretch;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 .entry-main{flex:1;min-width:0;display:flex;gap:12px;padding:12px;text-align:left;background:none;border:0;cursor:pointer;align-items:flex-start}
@@ -115,6 +131,7 @@ input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outlin
 .chip{flex:none;font:700 12px/1 var(--font-head);letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border-radius:6px;white-space:nowrap}
 .chip-open{background:var(--rot);color:var(--weiss)}
 .chip-done{background:var(--hellgruen);color:var(--ok-fg)}
+.chip-ex{background:var(--tint);color:var(--fg);margin-left:8px;vertical-align:3px;font-size:11px;padding:4px 6px}
 .entry .text{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .meta{font-size:14.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 12px}
 .meta .late{color:var(--danger-fg);font-weight:700}
@@ -122,13 +139,14 @@ input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outlin
 .thumbs{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
 .thumbs img,.thumbs .more{width:56px;height:56px;border-radius:6px;object-fit:cover;background:var(--surface-2);display:block}
 .thumbs .more{display:grid;place-items:center;font:700 15px var(--font-head);color:var(--muted)}
-.entry-check{flex:none;width:60px;border:0;border-left:1px solid var(--line);background:var(--surface-2);cursor:pointer;display:grid;place-items:center;color:var(--muted)}
+.entry-check{flex:none;width:60px;border:0;border-left:1px solid var(--line);background:var(--surface-2);cursor:pointer;display:grid;place-items:center}
 .ring{width:34px;height:34px;border-radius:50%;border:2.5px solid var(--line-strong);display:grid;place-items:center;color:transparent}
 .entry-check[aria-pressed="true"] .ring{background:var(--hellgruen);border-color:var(--hellgruen);color:var(--ok-fg)}
 .entry-check .ring .i{stroke-width:3;width:20px;height:20px}
 
 .empty{background:var(--surface);border:1.5px dashed var(--line-strong);border-radius:var(--r);padding:18px 16px}
 .empty h3{font-size:19px;margin-bottom:8px}
+.empty p{margin:0}
 .steps{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
 .small{font-size:14px;color:var(--muted);margin:10px 0 0}
 
@@ -144,16 +162,22 @@ input:focus-visible,textarea:focus-visible{outline:3px solid var(--focus);outlin
 .btn:disabled{opacity:.45;cursor:default}
 .btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .btn.onbar:focus-visible{outline-color:var(--on-bar)}
+.danger-zone{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.del-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--danger);border-radius:var(--r);padding:12px;align-self:stretch}
+.del-confirm p{margin:0;flex:1 1 100%}
+.del-confirm .btn{flex:1 1 8rem}
+.head-grid .danger-zone{grid-column:1/-1}
 
-/* Action bar */
+/* Aktionsleiste */
 .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(4,40,30,.08);padding-bottom:env(safe-area-inset-bottom,0px)}
 .actionbar-inner{max-width:44rem;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px;display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px}
+.actionbar-inner.single{grid-template-columns:1fr}
 .actionbar .btn{flex-direction:column;gap:3px;min-height:62px;padding:6px 4px;font-size:15px}
 .actionbar .btn .i{width:26px;height:26px}
 .actionbar .btn.primary{flex-direction:row;gap:10px;font-size:18px}
 .actionbar .btn.primary .i{width:30px;height:30px}
 
-/* Dialogs */
+/* Dialoge */
 dialog{color:var(--fg);background:var(--bg);border:0;padding:0}
 dialog::backdrop{background:var(--scrim)}
 .sheet{width:100%;max-width:44rem;height:100%;max-height:100%;margin:0 auto;overflow:hidden}
@@ -172,7 +196,7 @@ dialog::backdrop{background:var(--scrim)}
 .spinner{width:28px;height:28px;border-radius:50%;border:3px solid var(--line-strong);border-top-color:var(--primary);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .add{aspect-ratio:1;max-width:100%;border:2px dashed var(--line-strong);border-radius:10px;background:var(--surface);color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font:600 15px var(--font-head);cursor:pointer}
-.add .i{width:30px;height:30px;color:var(--primary)}
+.add .i{width:30px;height:30px;color:var(--green-text)}
 .add:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
 .pend-box{background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r);padding:6px 14px;display:flex;flex-direction:column;gap:14px}
@@ -189,12 +213,10 @@ dialog::backdrop{background:var(--scrim)}
 @media (max-width:359px){.pend-fields{grid-template-columns:1fr}}
 .check{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer;font-size:17px}
 .check input{width:26px;height:26px;margin:0;accent-color:var(--dunkelgruen);flex:none}
-.del-zone{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-top:4px}
-.del-confirm{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--surface);border:1.5px solid var(--danger);border-radius:var(--r);padding:12px}
-.del-confirm p{margin:0;flex:1 1 100%}
 
 .modal{width:calc(100% - 32px);max-width:27rem;border-radius:16px;background:var(--surface);padding:20px}
-.modal[open]{display:flex;flex-direction:column;gap:14px}
+.modal[open]{display:flex;flex-direction:column}
+.modal-body{display:flex;flex-direction:column;gap:14px;margin:0}
 .modal h2{font-size:21px}
 .modal p{margin:0}
 .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -214,7 +236,6 @@ dialog::backdrop{background:var(--scrim)}
 .hint{margin:0;font-size:15px;color:var(--muted);background:var(--tint);border-radius:10px;padding:12px 14px}
 .hint ol{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
 
-/* Toast */
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:max-content;max-width:calc(100% - 32px);background:var(--fg);color:var(--bg);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);font-size:15.5px}
 .toast-btn{background:none;border:0;color:var(--bg);font:700 15.5px var(--font-head);text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px;cursor:pointer}
 dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
@@ -227,10 +248,12 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <symbol id="i-logo" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4"/><path d="M8.6 12.6l2.4 2.4 4.4-4.6"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6H9l2 2h8.5A1.5 1.5 0 0 1 21 9.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5z"/><path d="M12 10.8v5.4M9.3 13.5h5.4"/></symbol>
+  <symbol id="i-doc-plus" viewBox="0 0 24 24"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5"/><path d="M12 11.5v6M9 14.5h6"/></symbol>
   <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/></symbol>
   <symbol id="i-note" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></symbol>
   <symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14"/><path d="M21 3l-7 18-4-7-7-4 18-7z"/></symbol>
-  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></symbol>
@@ -239,50 +262,87 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
 </svg>
 
 <header class="topbar">
   <div class="topbar-inner">
-    <div class="brand">
-      <svg class="i" aria-hidden="true"><use href="#i-logo"/></svg>
-      <div class="brand-text">
-        <h1 class="app-name">Baustellenprotokoll</h1>
-        <div class="app-sub" id="topSub">Neues Protokoll</div>
-      </div>
+    <button type="button" class="back" id="btnBack" aria-label="Zurück" hidden><svg class="i" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
+    <svg class="i logo" id="logo" aria-hidden="true"><use href="#i-logo"/></svg>
+    <div class="brand-text">
+      <h1 class="app-name" id="topTitle">Baustellenprotokoll</h1>
+      <div class="app-sub" id="topSub">Wird geladen …</div>
     </div>
-    <button type="button" class="btn-bar" id="btnNew"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Neu</button>
   </div>
 </header>
 
 <main class="wrap">
-  <div class="banner" id="exampleBanner" hidden>
-    <p><strong>Beispielprotokoll.</strong> So sieht ein ausgefülltes Protokoll aus. Sobald du etwas erfasst, beginnt ein leeres.</p>
-    <button type="button" class="btn primary" id="btnStart">Eigenes Protokoll beginnen</button>
-  </div>
   <div class="banner warn" id="persistWarn" hidden>
     <p><strong>Speichern auf diesem Gerät ist nicht möglich.</strong> Lass die Seite offen, bis das Protokoll versendet ist (privater Modus?).</p>
   </div>
 
-  <details class="card head" id="headBox" open>
-    <summary>
-      <span class="sum-title">Protokoll</span>
-      <span class="sum-meta" id="headSum"></span>
-      <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
-    </summary>
-    <div class="head-grid">
-      <label class="field wide"><span class="lbl">Projekt / Baustelle</span><input type="text" id="fProjekt" autocomplete="off" placeholder="z. B. MFH Lindenweg 12"></label>
-      <label class="field"><span class="lbl">Datum</span><input type="date" id="fDatum"></label>
-      <label class="field"><span class="lbl">Verfasst von</span><input type="text" id="fAutor" autocomplete="name"></label>
-      <label class="field wide"><span class="lbl">Anwesend</span><input type="text" id="fAnwesend" autocomplete="off" placeholder="Firmen / Personen, mit Komma getrennt"></label>
+  <!-- Ebene 1: Projekte -->
+  <section class="view" id="vProjects" aria-labelledby="hProjects">
+    <div class="banner" id="exampleBanner" hidden>
+      <p><strong>Beispielprojekt zum Anschauen.</strong> Es verschwindet, sobald du dein erstes eigenes Projekt anlegst.</p>
     </div>
-  </details>
+    <div class="list-head"><h2 id="hProjects">Projekte</h2><span class="stats" id="pjStats"></span></div>
+    <ul class="rows" id="projList"></ul>
+    <div class="empty" id="pjEmpty" hidden>
+      <h3>Noch keine Projekte</h3>
+      <p>Lege für jede Baustelle ein Projekt an. Darin werden die Protokolle der Reihe nach abgelegt: Nr. 1, Nr. 2, Nr. 3 …</p>
+    </div>
+  </section>
 
-  <section aria-labelledby="hList" style="display:flex;flex-direction:column;gap:12px">
-    <div class="list-head">
-      <h2 id="hList">Rundgang</h2>
-      <span class="stats" id="stats"></span>
+  <!-- Ebene 2: Protokolle eines Projekts -->
+  <section class="view" id="vProject" aria-labelledby="hProtos" hidden>
+    <div class="list-head"><h2 id="hProtos">Protokolle</h2><span class="stats" id="rpStats"></span></div>
+    <ol class="rows" id="protoList"></ol>
+    <div class="empty" id="rpEmpty" hidden>
+      <h3>Noch keine Protokolle</h3>
+      <p>Mit «Neues Protokoll» startest du Nr. 1. Jedes weitere Protokoll bekommt die nächste Nummer, offene Pendenzen kannst du übernehmen.</p>
     </div>
-    <ol class="entries" id="list"></ol>
+    <details class="card head" id="projEdit">
+      <summary><span class="sum-title">Projekt bearbeiten</span><span class="sum-meta"></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></summary>
+      <div class="head-grid">
+        <label class="field wide"><span class="lbl">Projektname</span><input type="text" id="pName" autocomplete="off"></label>
+        <div class="danger-zone">
+          <button type="button" class="btn ghost warn" id="pDel">Projekt löschen</button>
+          <div class="del-confirm" id="pDelConfirm" hidden>
+            <p id="pDelText">Projekt mit allen Protokollen und Fotos löschen?</p>
+            <button type="button" class="btn" id="pDelNo">Abbrechen</button>
+            <button type="button" class="btn danger" id="pDelYes">Löschen</button>
+          </div>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Ebene 3: ein Protokoll -->
+  <section class="view" id="vProtocol" hidden>
+    <details class="card head" id="headBox">
+      <summary>
+        <span class="sum-title">Kopfdaten</span>
+        <span class="sum-meta" id="headSum"></span>
+        <svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg>
+      </summary>
+      <div class="head-grid">
+        <label class="field"><span class="lbl">Datum</span><input type="date" id="fDatum"></label>
+        <label class="field"><span class="lbl">Verfasst von</span><input type="text" id="fAutor" autocomplete="name"></label>
+        <label class="field wide"><span class="lbl">Anwesend</span><input type="text" id="fAnwesend" autocomplete="off" placeholder="Firmen / Personen, mit Komma getrennt"></label>
+        <div class="danger-zone">
+          <button type="button" class="btn ghost warn" id="rDel">Protokoll löschen</button>
+          <div class="del-confirm" id="rDelConfirm" hidden>
+            <p id="rDelText">Protokoll mit allen Einträgen und Fotos löschen?</p>
+            <button type="button" class="btn" id="rDelNo">Abbrechen</button>
+            <button type="button" class="btn danger" id="rDelYes">Löschen</button>
+          </div>
+        </div>
+      </div>
+    </details>
+    <div class="list-head"><h2 id="hList">Rundgang</h2><span class="stats" id="stats"></span></div>
+    <ol class="entries" id="list" aria-labelledby="hList"></ol>
     <div class="empty" id="empty" hidden>
       <h3>Noch keine Einträge</h3>
       <ol class="steps">
@@ -295,14 +355,46 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   </section>
 </main>
 
-<nav class="actionbar" aria-label="Erfassen und senden">
-  <div class="actionbar-inner">
+<nav class="actionbar" aria-label="Aktionen">
+  <div class="actionbar-inner single" id="abProjects">
+    <button type="button" class="btn primary" id="btnNewProject"><svg class="i" aria-hidden="true"><use href="#i-folder-plus"/></svg>Neues Projekt</button>
+  </div>
+  <div class="actionbar-inner single" id="abProject" hidden>
+    <button type="button" class="btn primary" id="btnNewProto"><svg class="i" aria-hidden="true"><use href="#i-doc-plus"/></svg><span id="newProtoLbl">Neues Protokoll</span></button>
+  </div>
+  <div class="actionbar-inner" id="abProtocol" hidden>
     <button type="button" class="btn primary" id="btnPhoto"><svg class="i" aria-hidden="true"><use href="#i-cam"/></svg>Foto</button>
     <button type="button" class="btn" id="btnNote"><svg class="i" aria-hidden="true"><use href="#i-note"/></svg>Notiz</button>
     <button type="button" class="btn" id="btnSend"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg>Senden</button>
   </div>
   <input type="file" id="camMain" accept="image/*" capture="environment" class="vh" tabindex="-1" aria-hidden="true">
 </nav>
+
+<!-- Neues Projekt -->
+<dialog id="projDlg" class="modal" aria-labelledby="pjTitle">
+  <form class="modal-body" id="projForm" novalidate>
+    <h2 id="pjTitle">Neues Projekt</h2>
+    <label class="field"><span class="lbl">Projektname</span><input type="text" id="pjName" autocomplete="off" placeholder="z. B. MFH Lindenweg 12, Winterthur"></label>
+    <span class="field-note err" id="pjErr" hidden>Bitte einen Projektnamen eingeben.</span>
+    <div class="row">
+      <button type="button" class="btn" id="pjNo">Abbrechen</button>
+      <button type="submit" class="btn primary">Anlegen</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Neues Protokoll (mit Übernahme) -->
+<dialog id="newDlg" class="modal" aria-labelledby="nwTitle">
+  <div class="modal-body">
+    <h2 id="nwTitle">Neues Protokoll</h2>
+    <label class="check"><input type="checkbox" id="carry" checked><span id="carryLbl"></span></label>
+    <p class="small" style="margin:0" id="carryNote"></p>
+    <div class="row">
+      <button type="button" class="btn" id="newNo">Abbrechen</button>
+      <button type="button" class="btn primary" id="newYes">Anlegen</button>
+    </div>
+  </div>
+</dialog>
 
 <!-- Eintrag bearbeiten -->
 <dialog id="editor" class="sheet" aria-labelledby="edTitle">
@@ -324,7 +416,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
         <label class="check" style="align-self:end"><input type="checkbox" id="edErl"><span>Erledigt</span></label>
       </div>
     </div>
-    <div class="del-zone">
+    <div class="danger-zone">
       <button type="button" class="btn ghost warn" id="edDelete">Eintrag löschen</button>
       <div class="del-confirm" id="edDelConfirm" hidden>
         <p>Eintrag mit allen Fotos löschen?</p>
@@ -351,7 +443,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
         <input type="email" id="fTo" multiple inputmode="email" autocomplete="email" placeholder="bauleitung@firma.ch, …">
         <button type="button" class="btn icon" id="btnCopyTo" aria-label="Adressen kopieren"><svg class="i" aria-hidden="true"><use href="#i-copy"/></svg></button>
       </div>
-      <span class="field-note" id="toNote">Mehrere Adressen mit Komma trennen.</span>
+      <span class="field-note" id="toNote">Mehrere Adressen mit Komma trennen. Wird pro Projekt gespeichert.</span>
     </div>
     <div class="pdf-card">
       <div class="pdf-row">
@@ -371,18 +463,6 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   </div>
 </dialog>
 
-<!-- Neues Protokoll -->
-<dialog id="newDlg" class="modal" aria-labelledby="nwTitle">
-  <h2 id="nwTitle">Neues Protokoll beginnen?</h2>
-  <p>Das aktuelle Protokoll wird auf diesem Gerät gelöscht. Versende es vorher, falls noch nicht geschehen.</p>
-  <label class="check" id="carryRow"><input type="checkbox" id="carry" checked><span>Offene Pendenzen übernehmen (<span id="carryN">0</span>)</span></label>
-  <p class="small" style="margin:0">Projekt, Verfasser und Anwesende bleiben stehen.</p>
-  <div class="row">
-    <button type="button" class="btn" id="newNo">Abbrechen</button>
-    <button type="button" class="btn danger" id="newYes">Neu beginnen</button>
-  </div>
-</dialog>
-
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
@@ -390,7 +470,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 'use strict';
 document.documentElement.lang = 'de-CH';
 
-/* ---------- Helpers ---------- */
+/* ---------- Helfer ---------- */
 const $ = s => document.querySelector(s);
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const pad2 = n => String(n).padStart(2, '0');
@@ -403,6 +483,7 @@ const WDL = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag
 const fmtDW = iso => iso ? `${WD[new Date(iso + 'T12:00:00').getDay()]} ${fmtD(iso)}` : '';
 const fmtDL = iso => iso ? `${WDL[new Date(iso + 'T12:00:00').getDay()]}, ${fmtD(iso)}` : '';
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+const pname = p => (p && p.name) || 'Projekt ohne Namen';
 
 function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
@@ -423,13 +504,12 @@ function icon(name) {
   t.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   return t.content.firstChild;
 }
-
 const prefs = {
   get(k) { try { return localStorage.getItem('bp.' + k) || ''; } catch { return ''; } },
   set(k, v) { try { localStorage.setItem('bp.' + k, v); } catch {} }
 };
 
-/* ---------- Speicher (IndexedDB) ---------- */
+/* ---------- Speicher (IndexedDB, nur auf diesem Gerät) ---------- */
 const idb = (() => {
   let p;
   const open = () => p || (p = new Promise((res, rej) => {
@@ -457,47 +537,53 @@ const idb = (() => {
   };
 })();
 
-let state = null;
+let data = { v: 2, projects: [] };
 let persist = true;
 const photoBlob = new Map();
 const photoURL = new Map();
 
-function cachePhoto(id, blob) { photoBlob.set(id, blob); photoURL.set(id, URL.createObjectURL(blob)); }
-function dropPhoto(id) {
-  const u = photoURL.get(id);
-  if (u) URL.revokeObjectURL(u);
+function cachePhoto(id, blob) {
+  if (photoURL.has(id)) URL.revokeObjectURL(photoURL.get(id));
+  photoBlob.set(id, blob); photoURL.set(id, URL.createObjectURL(blob));
+}
+function uncache(id) {
+  const u = photoURL.get(id); if (u) URL.revokeObjectURL(u);
   photoURL.delete(id); photoBlob.delete(id);
-  if (persist) idb.del('p:' + id).catch(() => {});
 }
-function persistFailed() {
+function clearPhotoCache() { if (persist) for (const id of [...photoURL.keys()]) uncache(id); }
+function dropPhoto(id) { uncache(id); if (persist) idb.del('p:' + id).catch(() => {}); }
+async function addPhoto(id, blob) {
+  cachePhoto(id, blob);
   if (!persist) return;
-  persist = false;
-  $('#persistWarn').hidden = false;
+  try { await idb.set('p:' + id, await blob.arrayBuffer()); } catch { persistFailed(); }
 }
+async function getPhotoBlob(id) {
+  if (photoBlob.has(id)) return photoBlob.get(id);
+  if (!persist) return null;
+  try { const buf = await idb.get('p:' + id); return buf ? new Blob([buf], { type: 'image/jpeg' }) : null; } catch { return null; }
+}
+function persistFailed() { if (!persist) return; persist = false; $('#persistWarn').hidden = false; }
 
 let saveT;
-function save() { if (state.example) return; clearTimeout(saveT); saveT = setTimeout(saveNow, 350); }
+function save() { clearTimeout(saveT); saveT = setTimeout(saveNow, 350); }
 async function saveNow() {
   clearTimeout(saveT);
-  if (!persist || state.example) return;
-  try { await idb.set('state', state); } catch { persistFailed(); }
-}
-async function storePhoto(id, blob) {
-  if (!persist || state.example) return;
-  try { await idb.set('p:' + id, await blob.arrayBuffer()); } catch { persistFailed(); }
+  if (!persist) return;
+  try { await idb.set('data', data); } catch { persistFailed(); }
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveNow(); });
 window.addEventListener('pagehide', () => saveNow());
 
 /* ---------- Datenmodell ---------- */
-const newEntry = o => ({ id: uid(), created: Date.now(), ort: '', text: '', photos: [], pendenz: false, wer: '', termin: '', erledigt: false, carried: '', ...o });
-const blankState = keep => ({
-  v: 1, example: false,
-  projekt: keep.projekt || '', datum: todayISO(),
-  autor: keep.autor != null ? keep.autor : prefs.get('autor'),
-  anwesend: keep.anwesend || '', entries: keep.entries || []
-});
+const newEntry = o => ({ id: uid(), created: Date.now(), ort: '', text: '', photos: [], pendenz: false, wer: '', termin: '', erledigt: false, carried: '', carriedNr: 0, ...o });
 const isEmptyEntry = e => !e.photos.length && !e.text.trim() && !e.ort.trim() && !e.pendenz;
+const lastProto = p => p.protocols.reduce((a, r) => (!a || r.nr > a.nr ? r : a), null);
+const nextNr = p => p.protocols.reduce((m, r) => Math.max(m, r.nr), 0) + 1;
+const activity = p => Math.max(p.created || 0, ...p.protocols.map(r => r.created || 0));
+function counts(r) {
+  const pend = r.entries.filter(e => e.pendenz);
+  return { n: r.entries.length, pend: pend.length, open: pend.filter(e => !e.erledigt).length, photos: r.entries.reduce((a, e) => a + e.photos.length, 0) };
+}
 
 function examplePhoto(label, seed) {
   const c = document.createElement('canvas'); c.width = 800; c.height = 600;
@@ -512,40 +598,35 @@ function examplePhoto(label, seed) {
   g.font = '400 32px Roboto, Arial, sans-serif'; g.fillText(label, 400, 344);
   return new Promise(r => c.toBlob(b => r({ blob: b, w: 800, h: 600 }), 'image/jpeg', 0.8));
 }
-async function exampleState() {
-  const t = todayISO();
-  const s = {
-    v: 1, example: true,
-    projekt: 'MFH Lindenweg 12, Winterthur', datum: t,
-    autor: 'B. Keller, Bauleitung',
-    anwesend: 'Huber Bau AG, Elektro Meier AG, Sanitär Frei GmbH',
+async function createExample() {
+  const t = todayISO(), t0 = addDays(t, -7);
+  const r1 = {
+    id: uid(), nr: 1, datum: t0, created: Date.now() - 1000, autor: 'B. Keller, Bauleitung', anwesend: 'Huber Bau AG, Elektro Meier AG',
+    entries: [
+      newEntry({ ort: 'UG · Tiefgarage', text: 'Abdichtungsarbeiten Rampe begonnen. Untergrund trocken und sauber.' }),
+      newEntry({ ort: 'Fassade Nord', text: 'Gerüst nach Umbau Lage 4 ohne Abnahme in Betrieb. Abnahmeprotokoll nachreichen.', pendenz: true, wer: 'Huber Bau AG', termin: addDays(t0, 3) })
+    ]
+  };
+  const r2 = {
+    id: uid(), nr: 2, datum: t, created: Date.now(), autor: 'B. Keller, Bauleitung', anwesend: 'Huber Bau AG, Elektro Meier AG, Sanitär Frei GmbH',
     entries: [
       newEntry({ ort: 'UG · Tiefgarage', text: 'Abdichtung Rampe fertiggestellt. Anschluss an Entwässerungsrinne sauber ausgeführt.' }),
       newEntry({ ort: '2. OG · Treppenhaus', text: 'Absturzsicherung am Treppenauge fehlt. Vor Arbeitsbeginn morgen anbringen.', pendenz: true, wer: 'Huber Bau AG', termin: addDays(t, 1) }),
       newEntry({ ort: '3. OG · Whg. 3.2 Küche', text: 'Leerrohre gemäss Plan E-302 verlegt. Unterputzdose für Kochinsel fehlt.', pendenz: true, wer: 'Elektro Meier AG', termin: addDays(t, 7) }),
-      newEntry({ ort: 'Fassade Nord', text: 'Gerüstabnahme nach Umbau Lage 4 nachgereicht, Protokoll liegt im Baubüro.', pendenz: true, wer: 'Huber Bau AG', erledigt: true, carried: addDays(t, -7) })
+      newEntry({ ort: 'Fassade Nord', text: 'Gerüst nach Umbau Lage 4 ohne Abnahme in Betrieb. Abnahmeprotokoll nachreichen.', pendenz: true, wer: 'Huber Bau AG', termin: addDays(t0, 3), erledigt: true, carried: t0, carriedNr: 1 })
     ]
   };
-  const shots = [[0, 'UG · Rampe', 1], [1, '2. OG · Treppenauge', 2], [2, 'Whg. 3.2 · Küche', 3], [2, 'Whg. 3.2 · Detail', 5]];
-  for (const [i, label, seed] of shots) {
-    const r = await examplePhoto(label, seed);
-    const id = uid(); cachePhoto(id, r.blob);
-    s.entries[i].photos.push({ id, w: r.w, h: r.h });
+  const shots = [[r1, 0, 'UG · Rampe', 4], [r2, 0, 'UG · Rampe', 1], [r2, 1, '2. OG · Treppenauge', 2], [r2, 2, 'Whg. 3.2 · Küche', 3], [r2, 2, 'Whg. 3.2 · Detail', 5]];
+  for (const [r, i, label, seed] of shots) {
+    const x = await examplePhoto(label, seed);
+    const id = uid(); await addPhoto(id, x.blob);
+    r.entries[i].photos.push({ id, w: x.w, h: x.h });
   }
-  return s;
+  data.projects.push({ id: uid(), name: 'MFH Lindenweg 12, Winterthur', created: Date.now() - 2000, example: true, to: '', protocols: [r1, r2] });
 }
-
-function leaveExample(announce) {
-  if (!state.example) return;
-  for (const e of state.entries) for (const p of e.photos) {
-    const u = photoURL.get(p.id); if (u) URL.revokeObjectURL(u);
-    photoURL.delete(p.id); photoBlob.delete(p.id);
-  }
-  state = blankState({});
-  renderAll();
-  $('#headBox').open = true;
-  saveNow();
-  if (announce) toast('Leeres Protokoll bereit');
+function deleteProjectData(p) {
+  for (const r of p.protocols) for (const e of r.entries) for (const ph of e.photos) dropPhoto(ph.id);
+  data.projects = data.projects.filter(x => x !== p);
 }
 
 /* ---------- Bilder ---------- */
@@ -589,78 +670,257 @@ function toast(msg, action) {
   toastT = setTimeout(() => { hideToast(); if (toastExpire) { const f = toastExpire; toastExpire = null; f(); } }, action ? 6000 : 2800);
 }
 
-/* ---------- Kopf ---------- */
-const headFields = { projekt: $('#fProjekt'), datum: $('#fDatum'), autor: $('#fAutor'), anwesend: $('#fAnwesend') };
+/* ---------- Navigation: Projekte > Projekt > Protokoll ---------- */
+let view = { name: 'projects' };
+let P = null; // aktuelles Projekt
+let R = null; // aktuelles Protokoll
+
+function setView(v) {
+  const wasProto = view.name === 'protocol' ? view.rid : null;
+  let nv = v;
+  const p = v.pid ? data.projects.find(x => x.id === v.pid) : null;
+  const r = p && v.rid ? p.protocols.find(x => x.id === v.rid) : null;
+  if (nv.name === 'project' && !p) nv = { name: 'projects' };
+  if (nv.name === 'protocol' && !r) nv = p ? { name: 'project', pid: p.id } : { name: 'projects' };
+  view = nv; P = nv.name === 'projects' ? null : p; R = nv.name === 'protocol' ? r : null;
+  if (wasProto && wasProto !== (R && R.id)) clearPhotoCache();
+  prefs.set('view', JSON.stringify(view));
+  render();
+  if (R) loadProtoPhotos(R);
+}
+function navigate(v) {
+  setView(v);
+  try { history.pushState({ v: view, d: ((history.state && history.state.d) || 0) + 1 }, ''); } catch {}
+  window.scrollTo(0, 0);
+}
+function parentOf(v) { return v.name === 'protocol' ? { name: 'project', pid: v.pid } : { name: 'projects' }; }
+function goUp() {
+  const d = history.state && history.state.d;
+  if (d > 0) { history.back(); return; }
+  setView(parentOf(view));
+  try { history.replaceState({ v: view, d: 0 }, ''); } catch {}
+  window.scrollTo(0, 0);
+}
+window.addEventListener('popstate', e => {
+  const open = document.querySelector('dialog[open]');
+  if (open) {
+    open.close();
+    try { history.pushState({ v: view, d: ((e.state && e.state.d) || 0) + 1 }, ''); } catch {}
+    return;
+  }
+  setView(e.state && e.state.v ? e.state.v : { name: 'projects' });
+  window.scrollTo(0, 0);
+});
+$('#btnBack').addEventListener('click', goUp);
+
+function render() {
+  $('#vProjects').hidden = view.name !== 'projects';
+  $('#vProject').hidden = view.name !== 'project';
+  $('#vProtocol').hidden = view.name !== 'protocol';
+  $('#abProjects').hidden = view.name !== 'projects';
+  $('#abProject').hidden = view.name !== 'project';
+  $('#abProtocol').hidden = view.name !== 'protocol';
+  renderTop();
+  if (view.name === 'projects') renderProjects();
+  if (view.name === 'project') renderProject();
+  if (view.name === 'protocol') renderProtocol();
+}
+function renderTop() {
+  const back = $('#btnBack');
+  back.hidden = view.name === 'projects';
+  $('#logo').hidden = view.name !== 'projects';
+  if (view.name === 'projects') {
+    $('#topTitle').textContent = 'Baustellenprotokoll';
+    $('#topSub').textContent = plural(data.projects.length, 'Projekt', 'Projekte');
+  } else if (view.name === 'project') {
+    back.setAttribute('aria-label', 'Zurück zu den Projekten');
+    $('#topTitle').textContent = pname(P);
+    $('#topSub').textContent = `Projekt · ${plural(P.protocols.length, 'Protokoll', 'Protokolle')}`;
+  } else {
+    back.setAttribute('aria-label', `Zurück zu ${pname(P)}`);
+    $('#topTitle').textContent = `Protokoll Nr. ${R.nr}`;
+    $('#topSub').textContent = `${pname(P)} · ${fmtDW(R.datum)}`;
+  }
+}
+
+/* ---------- Ebene 1: Projekte ---------- */
+function renderProjects() {
+  const list = $('#projList'); list.textContent = '';
+  const ps = [...data.projects].sort((a, b) => activity(b) - activity(a));
+  $('#pjEmpty').hidden = ps.length > 0;
+  $('#pjStats').textContent = ps.length ? plural(ps.length, 'Projekt', 'Projekte') : '';
+  $('#exampleBanner').hidden = !ps.some(p => p.example);
+  for (const p of ps) {
+    const last = lastProto(p);
+    const open = last ? counts(last).open : 0;
+    list.append(h('li', null, h('button', { type: 'button', class: 'row-main', onclick: () => navigate({ name: 'project', pid: p.id }) },
+      h('span', { class: 'folder-ico' }, icon('folder')),
+      h('span', { class: 'row-body' },
+        h('span', { class: 'row-title' }, pname(p), p.example ? h('span', { class: 'chip chip-ex' }, 'Beispiel') : null),
+        h('span', { class: 'row-meta' }, last ? `${plural(p.protocols.length, 'Protokoll', 'Protokolle')} · zuletzt ${fmtDW(last.datum)}` : 'Noch kein Protokoll')),
+      open ? h('span', { class: 'chip chip-open' }, `${open} offen`, h('span', { class: 'vh' }, open === 1 ? ' Pendenz' : ' Pendenzen')) : null,
+      icon('chev-r'))));
+  }
+}
+const projDlg = $('#projDlg');
+$('#btnNewProject').addEventListener('click', () => {
+  $('#pjName').value = ''; $('#pjErr').hidden = true;
+  projDlg.showModal(); $('#pjName').focus();
+});
+$('#pjNo').addEventListener('click', () => projDlg.close());
+$('#projForm').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const name = $('#pjName').value.trim();
+  if (!name) { $('#pjErr').hidden = false; $('#pjName').focus(); return; }
+  data.projects.filter(p => p.example).forEach(deleteProjectData);
+  const p = { id: uid(), name, created: Date.now(), to: '', protocols: [] };
+  data.projects.push(p);
+  projDlg.close();
+  await saveNow();
+  navigate({ name: 'project', pid: p.id });
+});
+
+/* ---------- Ebene 2: Protokolle eines Projekts ---------- */
+function renderProject() {
+  const list = $('#protoList'); list.textContent = '';
+  const rs = [...P.protocols].sort((a, b) => a.nr - b.nr);
+  $('#rpEmpty').hidden = rs.length > 0;
+  const last = lastProto(P);
+  const openNow = last ? counts(last).open : 0;
+  $('#rpStats').textContent = rs.length ? `${plural(rs.length, 'Protokoll', 'Protokolle')} · ${openNow} ${openNow === 1 ? 'Pendenz' : 'Pendenzen'} offen` : '';
+  for (const r of rs) {
+    const c = counts(r);
+    list.append(h('li', null, h('button', { type: 'button', class: 'row-main', onclick: () => navigate({ name: 'protocol', pid: P.id, rid: r.id }) },
+      h('span', { class: 'nr' }, h('small', null, 'Nr.'), h('b', null, String(r.nr))),
+      h('span', { class: 'row-body' },
+        h('span', { class: 'row-title' }, fmtDL(r.datum) || 'Ohne Datum'),
+        h('span', { class: 'row-meta' }, `${plural(c.n, 'Eintrag', 'Einträge')} · ${plural(c.photos, 'Foto', 'Fotos')}`)),
+      c.open ? h('span', { class: 'chip chip-open' }, `${c.open} offen`, h('span', { class: 'vh' }, c.open === 1 ? ' Pendenz' : ' Pendenzen'))
+        : (c.pend ? h('span', { class: 'chip chip-done' }, 'Erledigt') : null),
+      icon('chev-r'))));
+  }
+  $('#newProtoLbl').textContent = `Neues Protokoll Nr. ${nextNr(P)}`;
+  if (document.activeElement !== $('#pName')) $('#pName').value = P.name;
+  $('#pDelConfirm').hidden = true; $('#pDel').hidden = false;
+}
+$('#pName').addEventListener('input', () => { P.name = $('#pName').value; renderTop(); save(); });
+$('#pDel').addEventListener('click', () => {
+  $('#pDelText').textContent = `«${pname(P)}» mit ${plural(P.protocols.length, 'Protokoll', 'Protokollen')} und allen Fotos löschen?`;
+  $('#pDel').hidden = true; $('#pDelConfirm').hidden = false; $('#pDelNo').focus();
+});
+$('#pDelNo').addEventListener('click', () => { $('#pDelConfirm').hidden = true; $('#pDel').hidden = false; $('#pDel').focus(); });
+$('#pDelYes').addEventListener('click', async () => {
+  const name = pname(P);
+  deleteProjectData(P);
+  await saveNow();
+  $('#projEdit').open = false;
+  goUp();
+  toast(`Projekt «${name}» gelöscht`);
+});
+
+const newDlg = $('#newDlg');
+let creating = false;
+$('#btnNewProto').addEventListener('click', () => {
+  if (creating) return;
+  const prev = lastProto(P);
+  const open = prev ? counts(prev).open : 0;
+  if (!open) { createProtocol(P, false); return; }
+  $('#nwTitle').textContent = `Protokoll Nr. ${nextNr(P)} anlegen`;
+  $('#carryLbl').textContent = `Offene Pendenzen aus Nr. ${prev.nr} übernehmen (${open})`;
+  $('#carryNote').textContent = `Anwesende und Verfasser werden aus Nr. ${prev.nr} übernommen. Nr. ${prev.nr} bleibt unverändert.`;
+  $('#carry').checked = true;
+  newDlg.showModal();
+  $('#newYes').focus();
+});
+$('#newNo').addEventListener('click', () => newDlg.close());
+$('#newYes').addEventListener('click', () => { newDlg.close(); createProtocol(P, $('#carry').checked); });
+
+async function createProtocol(p, carry) {
+  creating = true;
+  try {
+    const prev = lastProto(p);
+    const r = { id: uid(), nr: nextNr(p), datum: todayISO(), created: Date.now(), autor: (prev && prev.autor) || prefs.get('autor'), anwesend: (prev && prev.anwesend) || '', entries: [] };
+    if (carry && prev) {
+      for (const e of prev.entries.filter(x => x.pendenz && !x.erledigt)) {
+        const ne = { ...e, id: uid(), created: Date.now(), carried: e.carried || prev.datum, carriedNr: e.carriedNr || prev.nr, photos: [] };
+        for (const ph of e.photos) {
+          const b = await getPhotoBlob(ph.id);
+          if (b) { const id = uid(); await addPhoto(id, b); ne.photos.push({ id, w: ph.w, h: ph.h }); }
+        }
+        r.entries.push(ne);
+      }
+    }
+    p.protocols.push(r);
+    await saveNow();
+    navigate({ name: 'protocol', pid: p.id, rid: r.id });
+    toast(r.entries.length ? `Nr. ${r.nr} angelegt · ${plural(r.entries.length, 'Pendenz', 'Pendenzen')} übernommen` : `Protokoll Nr. ${r.nr} angelegt`);
+  } finally { creating = false; }
+}
+
+/* ---------- Ebene 3: Protokoll ---------- */
+const headFields = { datum: $('#fDatum'), autor: $('#fAutor'), anwesend: $('#fAnwesend') };
 for (const [k, el] of Object.entries(headFields)) {
-  el.addEventListener('focus', () => { if (state.example) leaveExample(false); });
   el.addEventListener('input', () => {
-    state[k] = el.value;
+    R[k] = el.value;
     if (k === 'autor') prefs.set('autor', el.value);
     renderTop(); renderHeadSum(); save();
   });
 }
-function renderHead() {
-  for (const [k, el] of Object.entries(headFields)) el.value = state[k] || '';
-  renderHeadSum();
-}
 function renderHeadSum() {
-  $('#headSum').textContent = [state.projekt, fmtD(state.datum), state.autor].filter(Boolean).join(' · ') || 'Projekt, Datum, Anwesende';
+  $('#headSum').textContent = [fmtD(R.datum), R.autor].filter(Boolean).join(' · ') || 'Datum, Verfasser, Anwesende';
 }
-function renderTop() {
-  $('#topSub').textContent = [state.projekt || 'Neues Protokoll', fmtD(state.datum)].filter(Boolean).join(' · ');
+function renderProtocol() {
+  for (const [k, el] of Object.entries(headFields)) el.value = R[k] || '';
+  renderHeadSum();
+  $('#rDelConfirm').hidden = true; $('#rDel').hidden = false;
+  $('#headBox').open = !R.autor;
+  renderEntries();
 }
-
-/* ---------- Liste ---------- */
-function counts() {
-  const pend = state.entries.filter(e => e.pendenz);
-  const open = pend.filter(e => !e.erledigt).length;
-  const photos = state.entries.reduce((a, e) => a + e.photos.length, 0);
-  return { n: state.entries.length, pend: pend.length, open, photos };
+async function loadProtoPhotos(r) {
+  const ids = r.entries.flatMap(e => e.photos.map(p => p.id)).filter(id => !photoBlob.has(id));
+  if (!ids.length) return;
+  for (const id of ids) { const b = await getPhotoBlob(id); if (b) cachePhoto(id, b); }
+  if (R === r) { renderEntries(); if (editor.open && cur) renderEdPhotos(); }
 }
-function renderList() {
+function renderEntries() {
   const list = $('#list');
   list.textContent = '';
-  const c = counts();
+  const c = counts(R);
   $('#empty').hidden = c.n > 0;
   $('#stats').textContent = c.n ? `${plural(c.n, 'Eintrag', 'Einträge')} · ${c.open} ${c.open === 1 ? 'Pendenz' : 'Pendenzen'} offen` : '';
   const t = todayISO();
-  state.entries.forEach((e, i) => {
+  R.entries.forEach((e, i) => {
     const n = i + 1;
     const li = h('li', { class: 'entry' + (e.pendenz ? (e.erledigt ? ' is-done' : ' is-open') : ''), 'data-id': e.id });
     const body = h('span', { class: 'entry-body' });
-    const top = h('span', { class: 'entry-top' },
+    body.append(h('span', { class: 'entry-top' },
       h('span', { class: 'ort' + (e.ort ? '' : ' none') }, e.ort || 'Ohne Ortsangabe'),
-      e.pendenz ? h('span', { class: 'chip ' + (e.erledigt ? 'chip-done' : 'chip-open') }, e.erledigt ? 'Erledigt' : 'Pendenz') : null
-    );
-    body.append(top);
+      e.pendenz ? h('span', { class: 'chip ' + (e.erledigt ? 'chip-done' : 'chip-open') }, e.erledigt ? 'Erledigt' : 'Pendenz') : null));
     if (e.text) body.append(h('span', { class: 'text' }, e.text));
     if (e.pendenz && (e.wer || e.termin)) {
       const late = !e.erledigt && e.termin && e.termin < t;
       body.append(h('span', { class: 'meta' },
         e.wer ? h('span', null, e.wer) : null,
-        e.termin ? h('span', { class: late ? 'late' : '' }, (late ? 'überfällig · ' : 'bis ') + fmtDW(e.termin)) : null
-      ));
+        e.termin ? h('span', { class: late ? 'late' : '' }, (late ? 'überfällig · ' : 'bis ') + fmtDW(e.termin)) : null));
     }
-    if (e.carried) body.append(h('span', { class: 'carried' }, `Übernommen vom ${fmtD(e.carried)}`));
+    if (e.carried) body.append(h('span', { class: 'carried' }, e.carriedNr ? `Übernommen aus Nr. ${e.carriedNr} (${fmtD(e.carried)})` : `Übernommen vom ${fmtD(e.carried)}`));
+    const shown = e.photos.filter(p => photoURL.has(p.id));
     if (e.photos.length) {
       const th = h('span', { class: 'thumbs' });
       const max = e.photos.length > 4 ? 3 : 4;
-      e.photos.slice(0, max).forEach(p => th.append(h('img', { src: photoURL.get(p.id) || '', alt: '', loading: 'lazy' })));
+      shown.slice(0, max).forEach(p => th.append(h('img', { src: photoURL.get(p.id), alt: '' })));
       if (e.photos.length > max) th.append(h('span', { class: 'more' }, '+' + (e.photos.length - max)));
       th.append(h('span', { class: 'vh' }, plural(e.photos.length, 'Foto', 'Fotos')));
       body.append(th);
     }
-    const main = h('button', { type: 'button', class: 'entry-main', onclick: () => openEditor(e) },
-      h('span', { class: 'num' }, h('span', { class: 'vh' }, 'Eintrag '), String(n)),
-      body
-    );
-    li.append(main);
+    li.append(h('button', { type: 'button', class: 'entry-main', onclick: () => openEditor(e) },
+      h('span', { class: 'num' }, h('span', { class: 'vh' }, 'Eintrag '), String(n)), body));
     if (e.pendenz) {
       const chk = h('button', { type: 'button', class: 'entry-check', 'aria-pressed': String(!!e.erledigt), 'aria-label': `Pendenz ${n} erledigt`, 'data-chk': e.id },
         h('span', { class: 'ring' }, icon('check')));
       chk.addEventListener('click', () => {
         e.erledigt = !e.erledigt;
-        save(); renderList();
+        save(); renderEntries();
         const again = document.querySelector(`[data-chk="${e.id}"]`); if (again) again.focus();
         toast(e.erledigt ? `Pendenz ${n} erledigt` : `Pendenz ${n} wieder offen`);
       });
@@ -669,12 +929,21 @@ function renderList() {
     list.append(li);
   });
 }
-function renderAll() {
-  renderTop(); renderHead(); renderList();
-  $('#exampleBanner').hidden = !state.example;
-}
+$('#rDel').addEventListener('click', () => {
+  $('#rDelText').textContent = `Protokoll Nr. ${R.nr} mit ${plural(R.entries.length, 'Eintrag', 'Einträgen')} und allen Fotos löschen?`;
+  $('#rDel').hidden = true; $('#rDelConfirm').hidden = false; $('#rDelNo').focus();
+});
+$('#rDelNo').addEventListener('click', () => { $('#rDelConfirm').hidden = true; $('#rDel').hidden = false; $('#rDel').focus(); });
+$('#rDelYes').addEventListener('click', async () => {
+  const nr = R.nr;
+  for (const e of R.entries) for (const ph of e.photos) dropPhoto(ph.id);
+  P.protocols = P.protocols.filter(x => x !== R);
+  await saveNow();
+  goUp();
+  toast(`Protokoll Nr. ${nr} gelöscht`);
+});
 
-/* ---------- Editor ---------- */
+/* ---------- Eintrag bearbeiten ---------- */
 const editor = $('#editor');
 const ed = { ort: $('#edOrt'), text: $('#edText'), pend: $('#edPend'), wer: $('#edWer'), termin: $('#edTermin'), erl: $('#edErl') };
 let cur = null;
@@ -686,12 +955,13 @@ function fillDatalists() {
     const dl = $(id); dl.textContent = '';
     [...new Set(vals.map(v => (v || '').trim()).filter(Boolean))].slice(-40).forEach(v => dl.append(h('option', { value: v })));
   };
-  fill('#dlOrt', state.entries.map(e => e.ort));
-  fill('#dlWer', [...(state.anwesend || '').split(','), ...state.entries.map(e => e.wer)]);
+  const all = P.protocols.flatMap(r => r.entries);
+  fill('#dlOrt', all.map(e => e.ort));
+  fill('#dlWer', [...(R.anwesend || '').split(','), ...all.map(e => e.wer)]);
 }
 function openEditor(entry, opts = {}) {
   cur = entry;
-  $('#edTitle').textContent = `Eintrag ${state.entries.indexOf(entry) + 1}`;
+  $('#edTitle').textContent = `Eintrag ${R.entries.indexOf(entry) + 1}`;
   ed.ort.value = entry.ort; ed.text.value = entry.text;
   ed.pend.checked = entry.pendenz; ed.wer.value = entry.wer; ed.termin.value = entry.termin; ed.erl.checked = entry.erledigt;
   $('#edPendFields').hidden = !entry.pendenz;
@@ -701,23 +971,20 @@ function openEditor(entry, opts = {}) {
   if (!editor.open) editor.showModal();
   editor.querySelector('.sheet-body').scrollTop = 0;
   autoGrow(ed.text);
-  if (opts.focusText) ed.text.focus();
-  else $('#edDone').focus();
+  if (opts.focusText) ed.text.focus(); else $('#edDone').focus();
 }
 function renderEdPhotos() {
   const g = $('#edPhotos');
   g.textContent = '';
   cur.photos.forEach((p, i) => {
     g.append(h('div', { class: 'ph' },
-      h('img', { src: photoURL.get(p.id) || '', alt: `Foto ${i + 1}` }),
-      h('button', { type: 'button', class: 'rm', 'aria-label': `Foto ${i + 1} entfernen`, onclick: () => removePhoto(i) }, icon('x'))
-    ));
+      photoURL.has(p.id) ? h('img', { src: photoURL.get(p.id), alt: `Foto ${i + 1}` }) : null,
+      h('button', { type: 'button', class: 'rm', 'aria-label': `Foto ${i + 1} entfernen`, onclick: () => removePhoto(i) }, icon('x'))));
   });
   for (let k = 0; k < pending; k++) g.append(h('div', { class: 'ph ph-wait', 'aria-label': 'Foto wird verarbeitet' }, h('span', { class: 'spinner' })));
   g.append(
     h('button', { type: 'button', class: 'add', onclick: () => $('#edCam').click() }, icon('cam'), 'Kamera'),
-    h('button', { type: 'button', class: 'add', onclick: () => $('#edGal').click() }, icon('image'), 'Galerie')
-  );
+    h('button', { type: 'button', class: 'add', onclick: () => $('#edGal').click() }, icon('image'), 'Galerie'));
 }
 function removePhoto(i) {
   const entry = cur;
@@ -725,7 +992,7 @@ function removePhoto(i) {
   save(); renderEdPhotos();
   toast('Foto entfernt', {
     label: 'Rückgängig',
-    fn: () => { entry.photos.splice(i, 0, p); save(); if (cur === entry && editor.open) renderEdPhotos(); renderList(); },
+    fn: () => { entry.photos.splice(i, 0, p); save(); if (cur === entry && editor.open) renderEdPhotos(); if (R) renderEntries(); },
     expire: () => { if (!entry.photos.includes(p)) dropPhoto(p.id); }
   });
 }
@@ -738,14 +1005,14 @@ async function addFiles(files, entry) {
     try {
       const r = await processImage(f);
       const id = uid();
-      cachePhoto(id, r.blob);
       entry.photos.push({ id, w: r.w, h: r.h });
-      await storePhoto(id, r.blob);
+      await addPhoto(id, r.blob);
     } catch { failed++; }
     pending--;
     if (cur === entry && editor.open) renderEdPhotos();
   }
-  save(); renderList();
+  save();
+  if (R && R.entries.includes(entry)) renderEntries();
   if (failed) toast(failed === 1 ? 'Ein Foto konnte nicht gelesen werden.' : `${failed} Fotos konnten nicht gelesen werden.`);
 }
 
@@ -761,27 +1028,27 @@ $('#edDone').addEventListener('click', () => editor.close());
 editor.addEventListener('close', () => {
   const e = cur;
   if (!e) return;
-  if (isEmptyEntry(e) && !pending) {
-    const i = state.entries.indexOf(e);
-    if (i > -1) state.entries.splice(i, 1);
+  const owner = data.projects.flatMap(p => p.protocols).find(r => r.entries.includes(e));
+  if (owner && isEmptyEntry(e) && !pending) owner.entries.splice(owner.entries.indexOf(e), 1);
+  save();
+  if (R) {
+    renderEntries();
+    const btn = document.querySelector(`[data-id="${e.id}"] .entry-main`);
+    if (btn) btn.focus();
   }
-  save(); renderList();
-  const btn = document.querySelector(`[data-id="${e.id}"] .entry-main`);
-  if (btn) btn.focus();
 });
 $('#edDelete').addEventListener('click', () => { $('#edDelete').hidden = true; $('#edDelConfirm').hidden = false; $('#edDelNo').focus(); });
 $('#edDelNo').addEventListener('click', () => { $('#edDelConfirm').hidden = true; $('#edDelete').hidden = false; $('#edDelete').focus(); });
 $('#edDelYes').addEventListener('click', () => {
   const e = cur;
-  const i = state.entries.indexOf(e);
-  if (i > -1) state.entries.splice(i, 1);
+  const i = R.entries.indexOf(e);
+  if (i > -1) R.entries.splice(i, 1);
   e.photos.forEach(p => dropPhoto(p.id));
   cur = null;
   editor.close();
-  save(); renderList();
+  save(); renderEntries();
   toast(`Eintrag ${i + 1} gelöscht`);
 });
-
 for (const id of ['#edCam', '#edGal']) {
   const inp = $(id);
   inp.addEventListener('change', () => { const files = [...inp.files]; inp.value = ''; if (cur) addFiles(files, cur); });
@@ -792,46 +1059,18 @@ $('#btnPhoto').addEventListener('click', () => $('#camMain').click());
 $('#camMain').addEventListener('change', () => {
   const inp = $('#camMain');
   const files = [...inp.files]; inp.value = '';
-  if (!files.length) return;
-  leaveExample(false);
+  if (!files.length || !R) return;
   const e = newEntry();
-  state.entries.push(e);
-  renderList();
+  R.entries.push(e);
+  renderEntries();
   openEditor(e, { focusText: false });
   addFiles(files, e);
 });
 $('#btnNote').addEventListener('click', () => {
-  leaveExample(false);
   const e = newEntry();
-  state.entries.push(e);
-  renderList();
+  R.entries.push(e);
+  renderEntries();
   openEditor(e, { focusText: true });
-});
-$('#btnStart').addEventListener('click', () => leaveExample(true));
-
-/* ---------- Neues Protokoll ---------- */
-const newDlg = $('#newDlg');
-$('#btnNew').addEventListener('click', () => {
-  if (state.example) { leaveExample(true); return; }
-  const open = state.entries.filter(e => e.pendenz && !e.erledigt).length;
-  $('#carryRow').hidden = !open;
-  $('#carryN').textContent = open;
-  $('#carry').checked = true;
-  newDlg.showModal();
-});
-$('#newNo').addEventListener('click', () => newDlg.close());
-$('#newYes').addEventListener('click', async () => {
-  const carry = !$('#carryRow').hidden && $('#carry').checked;
-  const kept = carry ? state.entries.filter(e => e.pendenz && !e.erledigt).map(e => ({ ...e, carried: e.carried || state.datum })) : [];
-  const keepIds = new Set(kept.flatMap(e => e.photos.map(p => p.id)));
-  for (const e of state.entries) for (const p of e.photos) if (!keepIds.has(p.id)) dropPhoto(p.id);
-  state = blankState({ projekt: state.projekt, autor: state.autor, anwesend: state.anwesend, entries: kept });
-  newDlg.close();
-  await saveNow();
-  renderAll();
-  $('#headBox').open = true;
-  window.scrollTo(0, 0);
-  toast(kept.length ? `Neues Protokoll · ${plural(kept.length, 'Pendenz', 'Pendenzen')} übernommen` : 'Neues Protokoll begonnen');
 });
 
 /* ---------- PDF ---------- */
@@ -845,16 +1084,17 @@ const pdfT = s => String(s == null ? '' : s).normalize('NFC')
   .replace(/[^\t\n\r\x20-\x7E\xA0-\xFF]/g, '');
 
 function fileName() {
-  const slug = (state.projekt || '').normalize('NFC').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40);
-  return `Baustellenprotokoll${slug ? '_' + slug : ''}_${state.datum || todayISO()}.pdf`;
+  const slug = pname(P).normalize('NFC').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+  return `${slug}_Protokoll-${pad2(R.nr)}_${R.datum || todayISO()}.pdf`;
 }
 
 async function buildPdf(recipients) {
   if (!window.jspdf || !window.jspdf.jsPDF) throw new Error('nolib');
+  const r = R, p = P;
   const bytes = new Map();
-  for (const e of state.entries) for (const p of e.photos) {
-    const b = photoBlob.get(p.id);
-    if (b) bytes.set(p.id, new Uint8Array(await b.arrayBuffer()));
+  for (const e of r.entries) for (const ph of e.photos) {
+    const b = await getPhotoBlob(ph.id);
+    if (b) bytes.set(ph.id, new Uint8Array(await b.arrayBuffer()));
   }
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
@@ -866,29 +1106,27 @@ async function buildPdf(recipients) {
   const font = (style, size, color) => { doc.setFont('helvetica', style); doc.setFontSize(size); doc.setTextColor(...(color || BK)); };
   const S = pdfT;
   const t = todayISO();
+  const c = counts(r);
   let y = 0;
   const newPage = () => { doc.addPage(); y = M; };
   const need = hgt => { if (y + hgt > BOTTOM) newPage(); };
   const hr = (color, w) => { doc.setDrawColor(...color); doc.setLineWidth(w); doc.line(M, y, W - M, y); };
 
-  doc.setProperties({ title: S(`Baustellenprotokoll ${state.projekt} ${fmtD(state.datum)}`), author: S(state.autor), creator: 'Baustellenprotokoll' });
+  doc.setProperties({ title: S(`Baustellenprotokoll Nr. ${r.nr} ${pname(p)} ${fmtD(r.datum)}`), author: S(r.autor), creator: 'Baustellenprotokoll' });
 
-  // Kopfband
   doc.setFillColor(...DG); doc.rect(0, 0, W, 32, 'F');
   doc.setFillColor(...HG); doc.rect(0, 32, W, 1.8, 'F');
-  font('bold', 22, WH); doc.text('Baustellenprotokoll', M, 15.5);
+  font('bold', 22, WH); doc.text(`Baustellenprotokoll Nr. ${r.nr}`, M, 15.5);
   font('normal', 11.5, WH);
-  doc.text(doc.splitTextToSize(S(state.projekt) || 'Ohne Projektangabe', CW - 40)[0], M, 24.5);
-  doc.text(fmtD(state.datum), W - M, 24.5, { align: 'right' });
+  doc.text(doc.splitTextToSize(S(pname(p)), CW - 40)[0], M, 24.5);
+  doc.text(fmtD(r.datum), W - M, 24.5, { align: 'right' });
   y = 45;
 
-  // Metadaten
-  const c = counts();
   const meta = [
-    ['Projekt', state.projekt], ['Datum', fmtDL(state.datum)], ['Verfasst von', state.autor],
-    ['Anwesend', state.anwesend], ['Verteiler', recipients.join(', ')],
+    ['Projekt', pname(p)], ['Protokoll', `Nr. ${r.nr}`], ['Datum', fmtDL(r.datum)], ['Verfasst von', r.autor],
+    ['Anwesend', r.anwesend], ['Verteiler', recipients.join(', ')],
     ['Umfang', `${plural(c.n, 'Eintrag', 'Einträge')}, ${plural(c.photos, 'Foto', 'Fotos')}, ${plural(c.pend, 'Pendenz', 'Pendenzen')} (${c.open} offen)`]
-  ].filter(r => r[1] && String(r[1]).trim());
+  ].filter(x => x[1] && String(x[1]).trim());
   for (const [k, v] of meta) {
     font('normal', 10);
     const lines = doc.splitTextToSize(S(v), CW - 34);
@@ -906,8 +1144,7 @@ async function buildPdf(recipients) {
     y += 3; hr(DG, 0.5); y += 5;
   };
 
-  // Pendenzen
-  const pend = state.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
+  const pend = r.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
   if (pend.length) {
     heading('Pendenzen', `${c.open} offen · ${c.pend - c.open} erledigt`);
     const cols = [{ k: 'Nr.', w: 11 }, { k: 'Pendenz', w: CW - 11 - 42 - 24 - 20 }, { k: 'Zuständig', w: 42 }, { k: 'Termin', w: 24 }, { k: 'Status', w: 20 }];
@@ -938,11 +1175,10 @@ async function buildPdf(recipients) {
     y += 12;
   }
 
-  // Rundgang
-  if (state.entries.length) {
+  if (r.entries.length) {
     heading('Rundgang', `${plural(c.n, 'Eintrag', 'Einträge')} · ${plural(c.photos, 'Foto', 'Fotos')}`);
     const X = M + 11, TW = CW - 11, GAP = 4, COLW = (TW - GAP) / 2, MAXH = 92;
-    state.entries.forEach((e, i) => {
+    r.entries.forEach((e, i) => {
       const n = i + 1;
       font('bold', 11.5);
       const ortLines = doc.splitTextToSize(S(e.ort) || 'Ohne Ortsangabe', TW - (e.pendenz ? 42 : 0));
@@ -952,14 +1188,17 @@ async function buildPdf(recipients) {
       const headH = Math.max(8, 5.6 + (ortLines.length - 1) * lh(11.5) + 2.4);
       need(headH + (metaTxt ? 5 : 0) + Math.min(textLines.length, 3) * lh(10) + 6);
 
-      const badge = e.pendenz ? (e.erledigt ? HG : ROT) : DG;
-      doc.setFillColor(...badge); doc.roundedRect(M, y, 8, 8, 1.2, 1.2, 'F');
+      doc.setFillColor(...(e.pendenz ? (e.erledigt ? HG : ROT) : DG)); doc.roundedRect(M, y, 8, 8, 1.2, 1.2, 'F');
       font('bold', 10.5, e.pendenz && e.erledigt ? BK : WH); doc.text(String(n), M + 4, y + 5.6, { align: 'center' });
       font('bold', 11.5, e.ort ? BK : AN); doc.text(ortLines, X, y + 5.6);
       if (e.pendenz) { font('bold', 8.5, e.erledigt ? DG : ROT); doc.text(e.erledigt ? 'PENDENZ ERLEDIGT' : 'PENDENZ OFFEN', W - M, y + 5.6, { align: 'right' }); }
       y += headH + 1.5;
       if (metaTxt) { font('normal', 9, AN); doc.text(S(metaTxt), X, y + 2.8); y += 5; }
-      if (e.carried) { font('italic', 8.5, AN); doc.text(S(`Übernommen aus Protokoll vom ${fmtD(e.carried)}`), X, y + 2.8); y += 4.8; }
+      if (e.carried) {
+        font('italic', 8.5, AN);
+        doc.text(S(e.carriedNr ? `Übernommen aus Protokoll Nr. ${e.carriedNr} vom ${fmtD(e.carried)}` : `Übernommen aus Protokoll vom ${fmtD(e.carried)}`), X, y + 2.8);
+        y += 4.8;
+      }
       if (textLines.length) {
         font('normal', 10);
         y += 0.6;
@@ -968,33 +1207,32 @@ async function buildPdf(recipients) {
           doc.text(line, X, y + 3.5); y += lh(10);
         }
       }
-      const ps = e.photos.filter(p => bytes.has(p.id));
+      const ps = e.photos.filter(ph => bytes.has(ph.id));
       for (let k = 0; k < ps.length; k += 2) {
-        const row = ps.slice(k, k + 2).map(p => {
-          let w = COLW, hh = COLW * p.h / p.w;
-          if (hh > MAXH) { hh = MAXH; w = hh * p.w / p.h; }
-          return { p, w, h: hh };
+        const row = ps.slice(k, k + 2).map(ph => {
+          let w = COLW, hh = COLW * ph.h / ph.w;
+          if (hh > MAXH) { hh = MAXH; w = hh * ph.w / ph.h; }
+          return { ph, w, h: hh };
         });
-        const rowH = Math.max(...row.map(r => r.h));
+        const rowH = Math.max(...row.map(x => x.h));
         if (y + 3 + rowH > BOTTOM) newPage(); else y += 3;
-        row.forEach((r, j) => {
+        row.forEach((x, j) => {
           const px = X + j * (COLW + GAP);
-          doc.addImage(bytes.get(r.p.id), 'JPEG', px, y, r.w, r.h, 'img' + r.p.id, 'NONE');
-          doc.setDrawColor(...HB); doc.setLineWidth(0.3); doc.rect(px, y, r.w, r.h, 'S');
+          doc.addImage(bytes.get(x.ph.id), 'JPEG', px, y, x.w, x.h, 'img' + x.ph.id, 'NONE');
+          doc.setDrawColor(...HB); doc.setLineWidth(0.3); doc.rect(px, y, x.w, x.h, 'S');
         });
         y += rowH;
       }
-      y += 5; if (i < state.entries.length - 1) { hr(HB, 0.3); y += 6; }
+      y += 5; if (i < r.entries.length - 1) { hr(HB, 0.3); y += 6; }
     });
   }
 
-  // Fusszeile
   const pages = doc.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
     doc.setDrawColor(...HB); doc.setLineWidth(0.4); doc.line(M, H - 12, W - M, H - 12);
     font('normal', 8, AN);
-    doc.text(doc.splitTextToSize(S(`Baustellenprotokoll ${fmtD(state.datum)}${state.projekt ? ' · ' + state.projekt : ''}`), CW - 30)[0], M, H - 7.5);
+    doc.text(doc.splitTextToSize(S(`Baustellenprotokoll Nr. ${r.nr} vom ${fmtD(r.datum)} · ${pname(p)}`), CW - 30)[0], M, H - 7.5);
     doc.text(`Seite ${i} von ${pages}`, W - M, H - 7.5, { align: 'right' });
   }
   return { blob: doc.output('blob'), pages, name: fileName() };
@@ -1003,10 +1241,10 @@ async function buildPdf(recipients) {
 /* ---------- Mail ---------- */
 function parseTo(s) { return (s || '').split(/[,;\s]+/).map(x => x.trim()).filter(Boolean); }
 const emailOk = a => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a);
-function subject() { return `Baustellenprotokoll${state.projekt ? ' ' + state.projekt : ''} – ${fmtD(state.datum)}`; }
+function subject() { return `Baustellenprotokoll Nr. ${R.nr} ${pname(P)} – ${fmtD(R.datum)}`; }
 function mailBody(limit) {
-  const L = ['Guten Tag', '', `Im Anhang das Baustellenprotokoll vom ${fmtD(state.datum)}${state.projekt ? ' (' + state.projekt + ')' : ''} als PDF mit allen Fotos.`];
-  const pend = state.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
+  const L = ['Guten Tag', '', `Im Anhang das Baustellenprotokoll Nr. ${R.nr} vom ${fmtD(R.datum)} (${pname(P)}) als PDF mit allen Fotos.`];
+  const pend = R.entries.map((e, i) => ({ e, n: i + 1 })).filter(x => x.e.pendenz);
   if (pend.length) {
     const open = pend.filter(x => !x.e.erledigt).length;
     L.push('', `Pendenzen (${open} offen):`);
@@ -1017,7 +1255,7 @@ function mailBody(limit) {
     }
   }
   L.push('', 'Freundliche Grüsse');
-  if (state.autor) L.push(state.autor);
+  if (R.autor) L.push(R.autor);
   let s = L.join('\n');
   if (limit && s.length > limit) s = s.slice(0, limit) + '\n... (vollständige Liste im PDF)';
   return s;
@@ -1082,7 +1320,7 @@ function updateMail() {
   $('#mailLink').href = mailtoHref();
   const bad = parseTo($('#fTo').value).filter(a => !emailOk(a));
   const note = $('#toNote');
-  note.textContent = bad.length ? `Bitte prüfen: ${bad.join(', ')}` : 'Mehrere Adressen mit Komma trennen.';
+  note.textContent = bad.length ? `Bitte prüfen: ${bad.join(', ')}` : 'Mehrere Adressen mit Komma trennen. Wird pro Projekt gespeichert.';
   note.classList.toggle('err', bad.length > 0);
 }
 async function generate() {
@@ -1092,10 +1330,10 @@ async function generate() {
   st.classList.remove('err');
   $('#pdfName').textContent = fileName();
   updateShareUI();
-  if (!state.entries.length) { st.textContent = 'Noch keine Einträge erfasst.'; return; }
+  if (!R.entries.length) { st.textContent = 'Noch keine Einträge erfasst.'; return; }
   st.textContent = 'PDF wird erstellt …';
   try {
-    await new Promise(r => setTimeout(r, 30));
+    await new Promise(res => setTimeout(res, 30));
     const r = await buildPdf(parseTo($('#fTo').value));
     if (my !== genToken) return;
     pdf = r;
@@ -1111,10 +1349,10 @@ async function generate() {
   updateShareUI();
 }
 $('#btnSend').addEventListener('click', () => {
-  const c = counts();
+  const c = counts(R);
   const sum = $('#sdSum'); sum.textContent = '';
-  sum.append(h('strong', null, state.projekt || 'Ohne Projektangabe'), ` · ${fmtD(state.datum)} · ${plural(c.n, 'Eintrag', 'Einträge')}, ${plural(c.photos, 'Foto', 'Fotos')}, ${c.open} ${c.open === 1 ? 'Pendenz' : 'Pendenzen'} offen`);
-  $('#fTo').value = prefs.get('to');
+  sum.append(h('strong', null, `Nr. ${R.nr} · ${pname(P)}`), ` · ${fmtD(R.datum)} · ${plural(c.n, 'Eintrag', 'Einträge')}, ${plural(c.photos, 'Foto', 'Fotos')}, ${c.open} ${c.open === 1 ? 'Pendenz' : 'Pendenzen'} offen`);
+  $('#fTo').value = P.to || '';
   updateMail();
   sendDlg.showModal();
   $('#sdClose').focus();
@@ -1122,7 +1360,7 @@ $('#btnSend').addEventListener('click', () => {
 });
 $('#sdClose').addEventListener('click', () => sendDlg.close());
 $('#fTo').addEventListener('input', () => {
-  prefs.set('to', $('#fTo').value);
+  P.to = $('#fTo').value; save();
   updateMail();
   clearTimeout(regenT);
   regenT = setTimeout(generate, 700);
@@ -1166,28 +1404,34 @@ $('#btnShare').addEventListener('click', async () => {
 
 /* ---------- Start ---------- */
 async function init() {
-  let saved = null;
-  try { saved = await idb.get('state'); } catch { persistFailed(); }
-  if (saved && saved.v === 1 && Array.isArray(saved.entries)) {
-    state = saved;
-    for (const e of state.entries) {
-      const ok = [];
-      for (const p of e.photos) {
-        try {
-          const buf = await idb.get('p:' + p.id);
-          if (buf) { cachePhoto(p.id, new Blob([buf], { type: 'image/jpeg' })); ok.push(p); }
-        } catch {}
-      }
-      e.photos = ok;
-    }
+  let stored = null;
+  try { stored = await idb.get('data'); } catch { persistFailed(); }
+  if (stored && stored.v === 2 && Array.isArray(stored.projects)) {
+    data = stored;
   } else {
-    state = await exampleState();
+    let old = null;
+    if (persist) { try { old = await idb.get('state'); } catch {} }
+    if (old && !old.example && Array.isArray(old.entries) && (old.entries.length || old.projekt)) {
+      // Protokoll aus der ersten Version (ohne Projekte) übernehmen
+      data.projects.push({ id: uid(), name: old.projekt || 'Projekt ohne Namen', created: Date.now(), to: prefs.get('to'),
+        protocols: [{ id: uid(), nr: 1, datum: old.datum || todayISO(), created: Date.now(), autor: old.autor || '', anwesend: old.anwesend || '', entries: old.entries }] });
+      await saveNow();
+      if (persist) idb.del('state').catch(() => {});
+    } else {
+      await createExample();
+      await saveNow();
+    }
   }
-  renderAll();
-  $('#headBox').open = !state.example && !(state.projekt && state.entries.length);
+  let v = null;
+  try { v = JSON.parse(prefs.get('view') || 'null'); } catch {}
+  try { history.replaceState({ v: { name: 'projects' }, d: 0 }, ''); } catch {}
+  setView({ name: 'projects' });
+  if (v && v.pid && data.projects.some(p => p.id === v.pid)) {
+    navigate({ name: 'project', pid: v.pid });
+    if (v.name === 'protocol' && P.protocols.some(r => r.id === v.rid)) navigate({ name: 'protocol', pid: v.pid, rid: v.rid });
+  }
   updateShareUI();
 }
-$('#topSub').textContent = 'Wird geladen …';
 init();
 })();
 </script>
