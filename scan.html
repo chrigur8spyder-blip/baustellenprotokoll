@@ -73,6 +73,8 @@ a{color:var(--green-text)}
 .banner p{margin:0}
 .banner.warn{background:var(--surface);border-color:var(--danger)}
 .banner.warn strong{color:var(--danger-fg)}
+.banner .problem{display:flex;flex-direction:column;gap:8px}
+.banner .problem li strong{color:inherit}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
 details.head>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:56px;padding:8px 14px;cursor:pointer;border-radius:var(--r)}
 details.head>summary::-webkit-details-marker{display:none}
@@ -251,6 +253,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   <!-- Liste der Scans -->
   <section class="view" id="vHome" aria-labelledby="hScans">
     <div class="banner warn" id="arBanner" hidden><p id="arBannerText"></p></div>
+    <div class="banner warn" id="arProblem" hidden><div id="arProblemText" class="problem"></div></div>
     <div class="banner" id="exampleBanner" hidden>
       <p><strong>Beispiel-Scan zum Anschauen.</strong> Er verschwindet, sobald du deinen ersten eigenen Scan speicherst.</p>
     </div>
@@ -856,11 +859,14 @@ async function startAR(mode) {
   if (arSupport !== 'ok') { toast(arMessage(arSupport)); return; }
   S.busy = true;
   const ui = $('#arUi');
-  let session;
+  let session, slow = false;
+  // Startet AR nicht (z. B. Seite im Browserfenster einer anderen App geöffnet), nicht ewig warten
+  const timer = setTimeout(() => { slow = true; S.busy = false; showArProblem('slow'); }, 12000);
   try {
     ensureArRenderer();
     arReset(mode);
-    ui.hidden = false;
+    toast('AR wird gestartet …');
+    // Die Oberfläche bleibt versteckt, bis die Sitzung läuft (wie bei three.js ARButton)
     session = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local'],
       optionalFeatures: ['hit-test', 'dom-overlay', 'depth-sensing', 'camera-access'],
@@ -869,12 +875,21 @@ async function startAR(mode) {
     });
   } catch (err) {
     console.warn(err);
-    ui.hidden = true; S.busy = false;
-    toast('AR konnte nicht gestartet werden. Kamera erlauben und «Google Play-Dienste für AR» installieren.');
+    clearTimeout(timer);
+    S.busy = false;
+    hideToast();
+    showArProblem(err && err.name === 'NotSupportedError' ? 'unsupported' : 'denied');
     return;
   }
+  clearTimeout(timer);
+  if (S.session) { session.end().catch(() => {}); return; }
+  if (slow) showArProblem(null);
+  S.busy = true;
+  hideToast();
+  ui.hidden = false;
   try {
     S.session = session;
+    showArProblem(null);
     session.addEventListener('end', onArEnd);
     session.addEventListener('select', () => { if (S.mode === 'measure') addArPoint(); });
     S.renderer.xr.setReferenceSpaceType('local');
@@ -1056,7 +1071,23 @@ $('#arNewLine').addEventListener('click', () => {
   if (l && l.pts.length >= 2) l.closed = true;
   updateArUi();
 });
-$('#arDone').addEventListener('click', () => { if (S.session) S.session.end().catch(() => onArEnd()); });
+$('#arDone').addEventListener('click', () => { if (S.session) S.session.end().catch(() => onArEnd()); else $('#arUi').hidden = true; });
+
+// Hinweis, wenn AR nicht startet (bleibt sichtbar bis zum nächsten erfolgreichen Start)
+function showArProblem(code) {
+  const box = $('#arProblem');
+  box.hidden = !code;
+  if (!code) return;
+  const p = $('#arProblemText'); p.textContent = '';
+  const steps = h('ol', { class: 'steps' },
+    h('li', null, 'Seite direkt in der ', h('strong', null, 'Chrome-App'), ' öffnen, nicht im Browserfenster einer anderen App (oben links ein «X»). Dort: ⋮ → «In Chrome öffnen».'),
+    h('li', null, 'Bei der Frage nach der Kamera auf ', h('strong', null, '«Zulassen»'), ' tippen.'),
+    h('li', null, 'Im Play Store ', h('strong', null, '«Google Play-Dienste für AR»'), ' installieren oder aktualisieren, Chrome aktualisieren.'));
+  const lead = code === 'slow' ? 'AR startet nicht.' : code === 'unsupported' ? 'AR wird hier nicht unterstützt.' : 'AR konnte nicht gestartet werden.';
+  p.append(h('strong', null, lead), ' So klappt es meistens:', steps);
+  if (code === 'slow') toast('AR startet nicht. Hinweis oben beachten.');
+  window.scrollTo(0, 0);
+}
 
 let pendingResult = null;
 function onArEnd() {
