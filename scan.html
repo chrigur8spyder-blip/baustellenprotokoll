@@ -139,6 +139,7 @@ input:focus-visible{outline:3px solid var(--focus);outline-offset:1px;border-col
 .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(4,40,30,.08);padding-bottom:env(safe-area-inset-bottom,0px)}
 .actionbar-inner{max-width:44rem;margin:0 auto;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));padding-block:10px;display:grid;grid-template-columns:2fr 1fr;gap:8px}
 .actionbar-inner.three{grid-template-columns:1fr 1fr 1fr}
+.actionbar-inner.four{grid-template-columns:repeat(4,minmax(0,1fr))}
 .actionbar .btn{flex-direction:column;gap:3px;min-height:62px;padding:6px 4px;font-size:15px}
 .actionbar .btn .i{width:26px;height:26px}
 .actionbar .btn.primary{flex-direction:row;gap:10px;font-size:18px}
@@ -158,6 +159,14 @@ input:focus-visible{outline:3px solid var(--focus);outline-offset:1px;border-col
 .tools-r{display:flex;flex-direction:column;gap:6px}
 .tool-btn{width:44px;height:44px;border-radius:10px;border:0;background:rgba(10,21,17,.78);color:#fff;display:grid;place-items:center;cursor:pointer;font:700 22px/1 var(--font-head)}
 .tool-btn .i{width:22px;height:22px}
+.tool-btn[aria-pressed="true"]{background:#fff;color:#066A50}
+.room{padding:14px;display:flex;flex-direction:column;gap:6px}
+.room-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.room-title{font:700 19px var(--font-head)}
+.room-sub{font-size:14px;color:var(--muted)}
+.room-dims{font:700 24px/1.2 var(--font-head);font-variant-numeric:tabular-nums}
+.room-meta{font-size:15px;color:var(--fg);font-variant-numeric:tabular-nums}
+.room-note{font-size:14px;color:var(--muted);margin:0}
 .stage-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);padding:8px 12px;border-radius:10px;background:rgba(10,21,17,.84);color:#fff;font-size:14.5px;text-align:center;pointer-events:none}
 .stage-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:#CFE0D7;pointer-events:none}
 .spinner{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#71A934;animation:spin .8s linear infinite;margin:0 auto 10px}
@@ -228,6 +237,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
   <symbol id="i-chev-l" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
   <symbol id="i-chev-r" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-walls" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M4 11h7M14 4v7M14 15v5"/></symbol>
   <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4.5h4.5"/></symbol>
 </svg>
 
@@ -267,9 +277,10 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       <summary><span class="sum-title">So funktioniert's</span><span class="sum-meta">Ablauf, Voraussetzungen, Genauigkeit</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></summary>
       <div class="head-body">
         <ol class="steps">
-          <li><strong>Raum scannen.</strong> «Aufnahme starten» und das Handy langsam über Boden, Wände und Decke schwenken. Die erfassten Flächen werden grün eingefärbt.</li>
-          <li><strong>Messen.</strong> Im AR-Modus auf «Messen» wechseln, das Ziel anpeilen und Punkte setzen. Strecken und Längen erscheinen live im Bild.</li>
-          <li><strong>Ansehen und exportieren.</strong> 3D-Ansicht und Grundriss, Messen in der Punktwolke, Bild fürs Protokoll, PLY für CAD und CloudCompare.</li>
+          <li><strong>Raum scannen.</strong> «Aufnahme starten», aus der Raummitte langsam alle Wände auf 1 bis 2,5 m Abstand abfahren, dazu Boden und Decke. Die erfassten Flächen werden grün eingefärbt.</li>
+          <li><strong>Raum wird erkannt.</strong> Aus der Punktwolke rechnet die App Boden, Decke und Wände: Grundriss mit Wandlängen, Raumhöhe, Fläche und Türöffnungen.</li>
+          <li><strong>Messen.</strong> Im AR-Modus auf «Messen» wechseln, das Ziel anpeilen und Punkte setzen. Oder später im Scan zwei Punkte antippen.</li>
+          <li><strong>Exportieren.</strong> Bild fürs Protokoll, DXF-Grundriss für CAD, PLY-Punktwolke für CloudCompare.</li>
         </ol>
         <p><strong>Voraussetzungen:</strong> Android-Handy mit ARCore, Chrome und der App «Google Play-Dienste für AR». Zum Scannen braucht das Gerät zusätzlich Tiefendaten (ARCore Depth, bei den meisten neueren Geräten vorhanden). Messen geht auch ohne.</p>
         <p><strong>Genauigkeit:</strong> Auf 0,5 bis 3 m Abstand meist wenige Zentimeter, auf grössere Distanz ungenauer. Verbindliche Masse mit Laser oder Messband kontrollieren.</p>
@@ -290,6 +301,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
           <button type="button" id="vmPlan" aria-pressed="false">Grundriss</button>
         </div>
         <div class="tools-r">
+          <button type="button" class="tool-btn" id="vRoom" aria-pressed="true" aria-label="Erkannte Wände anzeigen"><svg class="i" aria-hidden="true"><use href="#i-walls"/></svg></button>
           <button type="button" class="tool-btn" id="ptBig" aria-label="Punkte grösser">+</button>
           <button type="button" class="tool-btn" id="ptSmall" aria-label="Punkte kleiner">−</button>
           <button type="button" class="tool-btn" id="vReset" aria-label="Ansicht zurücksetzen"><svg class="i" aria-hidden="true"><use href="#i-reset"/></svg></button>
@@ -297,6 +309,12 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       </div>
       <div class="stage-hint" id="stageHint" hidden></div>
     </div>
+    <section class="card room" id="roomCard" aria-labelledby="roomTitle" hidden>
+      <div class="room-head"><h2 class="room-title" id="roomTitle">Raum</h2><span class="room-sub" id="roomSub">automatisch erkannt</span></div>
+      <div class="room-dims" id="roomDims"></div>
+      <div class="room-meta" id="roomMeta"></div>
+      <p class="room-note" id="roomNote"></p>
+    </section>
     <div class="list-head"><h2 id="hMeas">Masse</h2><span class="stats" id="mStats"></span></div>
     <ol class="rows" id="mList" aria-labelledby="hMeas"></ol>
     <div class="empty" id="mEmpty" hidden>
@@ -324,9 +342,10 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
     <button type="button" class="btn primary" id="btnScan"><svg class="i" aria-hidden="true"><use href="#i-cube"/></svg>Raum scannen</button>
     <button type="button" class="btn" id="btnMeasure"><svg class="i" aria-hidden="true"><use href="#i-ruler"/></svg>Messen</button>
   </div>
-  <div class="actionbar-inner three" id="abViewer" hidden>
+  <div class="actionbar-inner four" id="abViewer" hidden>
     <button type="button" class="btn" id="btnVMeasure" aria-pressed="false"><svg class="i" aria-hidden="true"><use href="#i-ruler"/></svg>Messen</button>
     <button type="button" class="btn" id="btnShot"><svg class="i" aria-hidden="true"><use href="#i-image"/></svg>Bild</button>
+    <button type="button" class="btn" id="btnDxf"><svg class="i" aria-hidden="true"><use href="#i-walls"/></svg>DXF</button>
     <button type="button" class="btn" id="btnPly"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg>PLY</button>
   </div>
 </nav>
@@ -526,7 +545,9 @@ async function deliver(blob, name, type) {
 /* ---------- Punktwolke aus Tiefenbildern (Voxel-Fusion) ---------- */
 const VOXEL = 0.03;      // 3 cm Raster
 const MAXPTS = 700000;   // Obergrenze für Handy-Speicher
-const NEAR = 0.25, FAR = 4.0;
+const NEAR = 0.3, FAR = 3.2;  // ARCore-Tiefe wird über ~3 m deutlich ungenauer
+const EDGE_TOL = 0.06;        // Kantenfilter: max. Krümmung der inversen Tiefe zwischen Nachbarpixeln
+const MAX_ROT = 1.1, MAX_MOVE = 0.7; // rad/s und m/s: schneller = Bewegungsunschärfe, nicht aufnehmen
 
 class Fusion {
   constructor(voxel = VOXEL, max = MAXPTS) {
@@ -539,6 +560,7 @@ class Fusion {
     this.col = re(this.col, Float32Array, 3);
     this.cnt = re(this.cnt, Uint16Array, 1);
     this.ccnt = re(this.ccnt, Uint16Array, 1);
+    this.key = re(this.key, Float64Array, 1);
     this.cap = cap;
   }
   // Fügt eine Messung hinzu. Gibt true zurück, wenn ein neuer Voxel entstanden ist.
@@ -552,6 +574,7 @@ class Fusion {
       i = this.n++;
       if (i >= this.cap) this._grow(Math.min(this.max, this.cap * 2));
       this.map.set(key, i);
+      this.key[i] = key;
       const o = i * 3;
       this.pos[o] = x; this.pos[o + 1] = y; this.pos[o + 2] = z;
       this.cnt[i] = 1;
@@ -575,25 +598,66 @@ class Fusion {
     }
     return false;
   }
-  // Voxel, die nur einmal gesehen wurden, sind meist Rauschen und fallen weg.
-  finalize(minCnt = 2) {
-    let keep = 0;
-    for (let i = 0; i < this.n; i++) if (this.cnt[i] >= minCnt) keep++;
-    if (keep < Math.min(3000, this.n * 0.3)) { minCnt = 1; keep = this.n; }
+  // Aufbereiten: Voxel, die selten gesehen wurden oder kaum Nachbarn haben, sind meist Rauschen.
+  finalize() {
+    const n = this.n, cnt = this.cnt;
+    const countKeep = mc => { let k = 0; for (let i = 0; i < n; i++) if (cnt[i] >= mc) k++; return k; };
+    let minCnt = 3, keep = countKeep(3);
+    if (keep < Math.min(3000, n * 0.25)) { minCnt = 2; keep = countKeep(2); }
+    if (keep < Math.min(3000, n * 0.25)) { minCnt = 1; keep = n; }
+    // Nachbarschaft: echte Flächen haben mehrere belegte Nachbarvoxel, Ausreisser nicht
+    const ok = new Uint8Array(n), S1 = 2048 * 2048, offs = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) if (dx || dy || dz) offs.push(dx * S1 + dy * 2048 + dz);
+    let kept = 0;
+    for (let i = 0; i < n; i++) {
+      if (cnt[i] < minCnt) continue;
+      const k = this.key[i];
+      let nb = 0;
+      for (const o of offs) { const j = this.map.get(k + o); if (j !== undefined && cnt[j] >= minCnt && ++nb >= 3) break; }
+      if (nb >= 3) { ok[i] = 1; kept++; }
+    }
+    if (kept < keep * 0.5) { kept = 0; for (let i = 0; i < n; i++) { ok[i] = cnt[i] >= minCnt ? 1 : 0; kept += ok[i]; } }
+    keep = kept;
     const pos = new Float32Array(keep * 3), col = new Uint8Array(keep * 3), hasCol = new Uint8Array(keep);
     let j = 0, colored = 0;
-    for (let i = 0; i < this.n; i++) {
-      if (this.cnt[i] < minCnt) continue;
+    for (let i = 0; i < n; i++) {
+      if (!ok[i]) continue;
       const o = i * 3, q = j * 3;
       pos[q] = this.pos[o]; pos[q + 1] = this.pos[o + 1]; pos[q + 2] = this.pos[o + 2];
       if (this.ccnt[i]) { col[q] = Math.round(this.col[o]); col[q + 1] = Math.round(this.col[o + 1]); col[q + 2] = Math.round(this.col[o + 2]); hasCol[j] = 1; colored++; }
       j++;
     }
-    const floorY = percentileY(pos, 0.01);
+    const floorY = estimateLevels(pos).floor;
     for (let k = 0; k < keep; k++) if (!hasCol[k]) heightColor(pos[k * 3 + 1] - floorY, col, k * 3);
     this.map = null;
     return { n: keep, pos, col, floorY, colored: colored > keep * 0.5 };
   }
+}
+// Boden und Decke als Spitzen im Höhenhistogramm (Wände verteilen sich gleichmässig über die Höhe)
+function estimateLevels(pos) {
+  const n = pos.length / 3;
+  if (!n) return { floor: 0, ceil: null };
+  const p01 = percentileY(pos, 0.01), p99 = percentileY(pos, 0.99);
+  const B = 0.02, lo = p01 - 0.1, nb = Math.ceil((p99 + 0.1 - lo) / B) + 1;
+  if (!(nb > 5 && nb < 3000)) return { floor: p01, ceil: null };
+  const step = Math.max(1, Math.floor(n / 120000)), hst = new Float32Array(nb);
+  for (let i = 0; i < n; i += step) { const k = Math.floor((pos[i * 3 + 1] - lo) / B); if (k >= 0 && k < nb) hst[k]++; }
+  const sm = new Float32Array(nb), W = [1, 2, 3, 2, 1];
+  for (let k = 0; k < nb; k++) { let s = 0; for (let t = -2; t <= 2; t++) { const q = k + t; if (q >= 0 && q < nb) s += hst[q] * W[t + 2]; } sm[k] = s / 9; }
+  const yOf = k => lo + (k + 0.5) * B;
+  const mean = (a, b) => { let s = 0, c = 0; for (let k = 0; k < nb; k++) { const y = yOf(k); if (y >= a && y <= b) { s += sm[k]; c++; } } return c ? s / c : 0; };
+  const refine = y0 => { let s = 0, c = 0; for (let i = 0; i < n; i += step) { const y = pos[i * 3 + 1]; if (Math.abs(y - y0) < 0.04) { s += y; c++; } } return c ? s / c : y0; };
+  let fb = -1;
+  for (let k = 0; k < nb; k++) { if (yOf(k) > p01 + 0.6) break; if (fb < 0 || sm[k] > sm[fb]) fb = k; }
+  let floor = p01;
+  const wallRef = mean(p01 + 0.5, p01 + 1.6);
+  if (fb >= 0 && (!wallRef || sm[fb] >= 2.2 * wallRef)) floor = refine(yOf(fb));
+  let cb = -1;
+  for (let k = 0; k < nb; k++) { if (yOf(k) < floor + 1.8) continue; if (cb < 0 || sm[k] > sm[cb]) cb = k; }
+  let ceil = null;
+  const wr = mean(floor + 0.5, floor + 1.6);
+  if (cb >= 0 && sm[cb] >= 2.2 * Math.max(wr, 1) && sm[cb] >= 0.12 * (fb >= 0 ? sm[fb] : 0)) ceil = refine(yOf(cb));
+  return { floor, ceil };
 }
 function percentileY(pos, p) {
   const n = pos.length / 3;
@@ -632,19 +696,206 @@ function integrateDepth(F, di, view, sampler, onNew) {
   const aspect = P[5] / P[0];
   const GX = 56, GY = Math.max(24, Math.min(150, Math.round(GX / aspect)));
   const jx = Math.random(), jy = Math.random(), w = [0, 0, 0];
+  if (!_D || _D.length < GX * GY) _D = new Float32Array(GX * GY);
+  const D = _D;
+  for (let gy = 0; gy < GY; gy++) for (let gx = 0; gx < GX; gx++) {
+    let d = NaN;
+    try { d = di.getDepthInMeters((gx + jx) / GX, (gy + jy) / GY); } catch {}
+    D[gy * GX + gx] = d > 0 ? d : NaN;
+  }
+  // Kantenfilter: Auf einer Ebene ist 1/Tiefe linear im Bild. Springt sie zwischen Nachbarn,
+  // liegt der Punkt auf einer Kante (Streupunkt zwischen Vorder- und Hintergrund) und fällt weg.
+  const bad = (a, d, b) => !(a > 0 && b > 0) || Math.abs(d / a + d / b - 2) > EDGE_TOL;
   let added = 0;
-  for (let gy = 0; gy < GY; gy++) {
+  for (let gy = 1; gy < GY - 1; gy++) {
     const ny = (gy + jy) / GY;
-    for (let gx = 0; gx < GX; gx++) {
-      const nx = (gx + jx) / GX;
-      let d;
-      try { d = di.getDepthInMeters(nx, ny); } catch { continue; }
+    for (let gx = 1; gx < GX - 1; gx++) {
+      const k = gy * GX + gx, d = D[k];
       if (!(d >= NEAR && d <= FAR)) continue;
+      if (bad(D[k - 1], d, D[k + 1]) || bad(D[k - GX], d, D[k + GX])) continue;
+      const nx = (gx + jx) / GX;
       un(nx, ny, d, w);
       if (F.add(w[0], w[1], w[2], sampler ? sampler(nx, ny) : null, onNew)) added++;
     }
   }
   return added;
+}
+let _D = null;
+
+/* ---------- Raum erkennen: Boden, Decke, Wände (rechtwinklig) aus der Punktwolke ---------- */
+const ROOMV = 2;
+function detectRoom(pos) {
+  const n = pos.length / 3;
+  const lv = estimateLevels(pos), f = lv.floor, c = lv.ceil;
+  const res = { v: ROOMV, floor: f, ceil: c, height: c != null ? c - f : null, walls: [], openings: [], dims: null, area: null, frame: null };
+  if (n < 1500) return res;
+  // Wandband: über Möbeln, unter Türsturz und Decke
+  const lo = f + 0.3, hi = Math.min(f + 1.9, c != null ? c - 0.25 : Infinity);
+  if (hi - lo < 0.5) return res;
+  const step = Math.max(1, Math.floor(n / 90000));
+  const Xs = [], Zs = [], Ys = [];
+  for (let i = 0; i < n; i += step) { const y = pos[i * 3 + 1]; if (y >= lo && y <= hi) { Xs.push(pos[i * 3]); Zs.push(pos[i * 3 + 2]); Ys.push(y); } }
+  const m = Xs.length;
+  if (m < 600) return res;
+  let cx = 0, cz = 0;
+  for (let i = 0; i < m; i++) { cx += Xs[i]; cz += Zs[i]; }
+  cx /= m; cz /= m;
+  let R = 0;
+  for (let i = 0; i < m; i++) R = Math.max(R, Math.abs(Xs[i] - cx), Math.abs(Zs[i] - cz));
+  R = Math.min(R * 1.5 + 0.2, 40);
+  // 1) Hauptrichtung: Winkel, bei dem die Projektionen auf beide Achsen am «spitzesten» sind
+  const BW = 0.05, NB = Math.ceil(2 * R / BW) + 2, hu = new Float32Array(NB), hv = new Float32Array(NB);
+  const sub = Math.max(1, Math.floor(m / 20000));
+  const score = deg => {
+    const th = deg * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th);
+    hu.fill(0); hv.fill(0);
+    for (let i = 0; i < m; i += sub) { const x = Xs[i] - cx, z = Zs[i] - cz; hu[((x * cs + z * sn + R) / BW) | 0]++; hv[((-x * sn + z * cs + R) / BW) | 0]++; }
+    let s = 0; for (let k = 0; k < NB; k++) s += hu[k] * hu[k] + hv[k] * hv[k];
+    return s;
+  };
+  let best = 0, bs = -1;
+  for (let d = 0; d < 90; d++) { const s = score(d); if (s > bs) { bs = s; best = d; } }
+  for (let d = best - 1; d <= best + 1.001; d += 0.1) { const s = score(d); if (s > bs) { bs = s; best = d; } }
+  // Feinabgleich mit allen Punkten: 0,05° (bei 5 m Wand ca. 4 mm)
+  const fine = deg => {
+    const th = deg * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th), fb = 0.02, fn = Math.ceil(2 * R / fb) + 2;
+    const a = new Float32Array(fn), b = new Float32Array(fn);
+    for (let i = 0; i < m; i++) { const x = Xs[i] - cx, z = Zs[i] - cz; a[((x * cs + z * sn + R) / fb) | 0]++; b[((-x * sn + z * cs + R) / fb) | 0]++; }
+    let s = 0; for (let k = 0; k < fn; k++) s += a[k] * a[k] + b[k] * b[k];
+    return s;
+  };
+  let fbest = best, fbs = -1;
+  for (let d = best - 0.3; d <= best + 0.301; d += 0.05) { const s = fine(d); if (s > fbs) { fbs = s; fbest = d; } }
+  best = fbest;
+  const deg = ((best % 90) + 90) % 90, th = deg * Math.PI / 180, cs = Math.cos(th), sn = Math.sin(th);
+  const U = new Float32Array(m), V = new Float32Array(m);
+  for (let i = 0; i < m; i++) { const x = Xs[i] - cx, z = Zs[i] - cz; U[i] = x * cs + z * sn; V[i] = -x * sn + z * cs; }
+  // 2) Wandlinien: Spitzen im Histogramm quer zur Wand, dann zusammenhängende Abschnitte entlang der Wand
+  const findSegs = (A, B) => {
+    let amin = Infinity, amax = -Infinity;
+    for (let i = 0; i < m; i++) { if (A[i] < amin) amin = A[i]; if (A[i] > amax) amax = A[i]; }
+    amin -= 0.1; amax += 0.1; // Rand auffüllen: die äussersten Wände liegen genau am Rand
+    const bw = 0.02, nb = Math.ceil((amax - amin) / bw) + 1, hs = new Float32Array(nb);
+    for (let i = 0; i < m; i++) hs[((A[i] - amin) / bw) | 0]++;
+    const sm = new Float32Array(nb), W = [1, 4, 6, 4, 1];
+    let mx = 0;
+    for (let k = 0; k < nb; k++) { let s = 0; for (let t = -2; t <= 2; t++) { const q = k + t; if (q >= 0 && q < nb) s += hs[q] * W[t + 2]; } sm[k] = s / 16; if (sm[k] > mx) mx = sm[k]; }
+    const cands = [];
+    for (let k = 1; k < nb - 1; k++) if (sm[k] >= sm[k - 1] && sm[k] > sm[k + 1] && sm[k] >= Math.max(0.08 * mx, 6)) cands.push({ a: amin + (k + 0.5) * bw, s: sm[k] });
+    cands.sort((p, q) => q.s - p.s);
+    const kept = [];
+    for (const cd of cands) if (!kept.some(k => Math.abs(k.a - cd.a) < 0.25)) kept.push(cd);
+    const segs = [];
+    for (const cd of kept) {
+      let idx = [];
+      for (let i = 0; i < m; i++) if (Math.abs(A[i] - cd.a) < 0.09) idx.push(i);
+      if (idx.length < 40) continue;
+      const as = idx.map(i => A[i]).sort((p, q) => p - q), a = as[as.length >> 1];
+      idx = idx.filter(i => Math.abs(A[i] - a) < 0.07);
+      let bmin = Infinity, bmax = -Infinity;
+      for (const i of idx) { if (B[i] < bmin) bmin = B[i]; if (B[i] > bmax) bmax = B[i]; }
+      const bb = 0.05, nbb = Math.ceil((bmax - bmin) / bb) + 1, occ = new Uint16Array(nbb);
+      for (const i of idx) occ[((B[i] - bmin) / bb) | 0]++;
+      let nz = 0, sum = 0;
+      for (let k = 0; k < nbb; k++) if (occ[k]) { nz++; sum += occ[k]; }
+      const thr = Math.max(1, Math.round(0.2 * sum / Math.max(1, nz)));
+      const gapBins = Math.round(0.2 / bb);
+      let start = -1, last = -1;
+      const flush = () => {
+        if (start < 0) return;
+        const b0 = bmin + start * bb, b1 = bmin + (last + 1) * bb;
+        let filled = 0; for (let k = start; k <= last; k++) if (occ[k] >= thr) filled++;
+        const ys = [];
+        for (const i of idx) if (B[i] >= b0 && B[i] <= b1) ys.push(Ys[i]);
+        ys.sort((p, q) => p - q);
+        const span = ys.length ? ys[Math.floor(ys.length * 0.92)] - ys[Math.floor(ys.length * 0.08)] : 0;
+        if (b1 - b0 >= 0.45 && filled / (last - start + 1) >= 0.45 && ys.length >= 30 && span >= Math.min(0.7, 0.5 * (hi - lo))) segs.push({ a, b0, b1 });
+        start = -1;
+      };
+      for (let k = 0; k < nbb; k++) {
+        if (occ[k] < thr) continue;
+        if (start >= 0 && k - last > gapBins) flush();
+        if (start < 0) start = k;
+        last = k;
+      }
+      flush();
+    }
+    return segs;
+  };
+  const uS = findSegs(U, V), vS = findSegs(V, U);
+  // 3) Ecken schliessen: Wandenden auf die nächste querlaufende Wand ziehen
+  const SN = 0.35;
+  const snap = (segs, perp) => {
+    for (const s of segs) for (const e of ['b0', 'b1']) {
+      let bestA = null, bd = SN;
+      for (const p of perp) {
+        const dd = Math.abs(p.a - s[e]);
+        if (dd < bd && s.a >= p.b0 - SN && s.a <= p.b1 + SN) { bd = dd; bestA = p.a; }
+      }
+      if (bestA !== null) { s[e] = bestA; s[e === 'b0' ? 'j0' : 'j1'] = true; }
+    }
+  };
+  const u0 = uS.map(s => ({ ...s })), v0 = vS.map(s => ({ ...s }));
+  snap(uS, v0); snap(vS, u0);
+  const toW = (u, v) => [cx + u * cs - v * sn, cz + u * sn + v * cs];
+  const r4 = v => Math.round(v * 10000) / 10000;
+  const walls = [], openings = [];
+  const addGroup = (segs, axis) => {
+    const collinear = s => segs.some(o => o !== s && Math.abs(o.a - s.a) <= 0.06);
+    const ok = segs.filter(s => { const L = s.b1 - s.b0; return L >= 0.45 && (L >= 0.9 || s.j0 || s.j1 || collinear(s)); })
+      .sort((p, q) => p.a - q.a || p.b0 - q.b0);
+    for (const s of ok) {
+      const A = axis === 'u' ? toW(s.a, s.b0) : toW(s.b0, s.a), B = axis === 'u' ? toW(s.a, s.b1) : toW(s.b1, s.a);
+      walls.push({ a: A.map(r4), b: B.map(r4), len: r4(s.b1 - s.b0), axis, at: r4(s.a), from: r4(s.b0), to: r4(s.b1) });
+    }
+    // Öffnungen: Lücken zwischen Abschnitten derselben Wandlinie
+    for (let i = 0; i < ok.length; i++) for (let j = i + 1; j < ok.length; j++) {
+      const p = ok[i], q = ok[j];
+      if (Math.abs(p.a - q.a) > 0.06) continue;
+      const g = q.b0 - p.b1;
+      if (g >= 0.55 && g <= 2.6 && !ok.some(o => o !== p && o !== q && Math.abs(o.a - p.a) <= 0.06 && o.b0 < q.b0 && o.b1 > p.b1)) {
+        const A = axis === 'u' ? toW(p.a, p.b1) : toW(p.b1, p.a), B = axis === 'u' ? toW(p.a, q.b0) : toW(q.b0, p.a);
+        openings.push({ a: A.map(r4), b: B.map(r4), w: r4(g), axis, at: r4(p.a), from: r4(p.b1), to: r4(q.b0) });
+      }
+    }
+  };
+  addGroup(uS, 'u'); addGroup(vS, 'v');
+  // Reihenfolge rund um den Raum
+  walls.sort((p, q) => Math.atan2((p.a[1] + p.b[1]) / 2 - cz, (p.a[0] + p.b[0]) / 2 - cx) - Math.atan2((q.a[1] + q.b[1]) / 2 - cz, (q.a[0] + q.b[0]) / 2 - cx));
+  res.walls = walls; res.openings = openings;
+  const big = walls.filter(w => w.len >= 0.8);
+  // Wandlinien (durch Türen geteilte Wände zählen als eine Linie)
+  const uniq = arr => arr.sort((p, q) => p - q).filter((v, i, a) => !i || v - a[i - 1] > 0.3);
+  const us = uniq(big.filter(w => w.axis === 'u').map(w => w.at)), vs = uniq(big.filter(w => w.axis === 'v').map(w => w.at));
+  const all = walls.length ? walls : [];
+  const uAll = [...walls.filter(w => w.axis === 'u').map(w => w.at), ...walls.filter(w => w.axis === 'v').flatMap(w => [w.from, w.to])];
+  const vAll = [...walls.filter(w => w.axis === 'v').map(w => w.at), ...walls.filter(w => w.axis === 'u').flatMap(w => [w.from, w.to])];
+  if (all.length) res.frame = { th: r4(th), cx: r4(cx), cz: r4(cz), umin: r4(Math.min(...uAll)), umax: r4(Math.max(...uAll)), vmin: r4(Math.min(...vAll)), vmax: r4(Math.max(...vAll)) };
+  if (us.length >= 2 && vs.length >= 2) {
+    const L = Math.max(...us) - Math.min(...us), Wd = Math.max(...vs) - Math.min(...vs);
+    res.dims = { a: r4(Math.max(L, Wd)), b: r4(Math.min(L, Wd)) };
+    const ext = [Math.min(...us), Math.max(...us)], exv = [Math.min(...vs), Math.max(...vs)];
+    const rect = walls.every(w => (w.axis === 'u' ? ext : exv).some(e => Math.abs(e - w.at) < 0.06));
+    if (rect) {
+      res.area = r4(L * Wd);
+      // Rechteckiger Raum: Wände bis in die Ecken ergänzen (nicht ganz gescannte Enden), Öffnungen bleiben frei
+      const done = [];
+      for (const [axis, at, from, to] of [['u', ext[0], exv[0], exv[1]], ['v', exv[0], ext[0], ext[1]], ['u', ext[1], exv[0], exv[1]], ['v', exv[1], ext[0], ext[1]]]) {
+        const ops = openings.filter(o => o.axis === axis && Math.abs(o.at - at) < 0.06).sort((p, q) => p.from - q.from);
+        let cur = from;
+        for (const o of [...ops, { from: to, to }]) {
+          const b0 = cur, b1 = Math.min(o.from, to);
+          if (b1 - b0 >= 0.05) {
+            const A = axis === 'u' ? toW(at, b0) : toW(b0, at), B = axis === 'u' ? toW(at, b1) : toW(b1, at);
+            done.push({ a: A.map(r4), b: B.map(r4), len: r4(b1 - b0), axis, at: r4(at), from: r4(b0), to: r4(b1) });
+          }
+          cur = Math.max(cur, o.to);
+        }
+      }
+      res.walls = done; res.completed = true;
+    }
+  }
+  return res;
 }
 
 /* ---------- Kamerabild auslesen (für Punktfarben) ---------- */
@@ -767,8 +1018,36 @@ function roundRect(ctx, x, y, w, hh, r) {
   ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + hh, r); ctx.arcTo(x + w, y + hh, x, y + hh, r);
   ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
 }
+// Erkannte Wände im Grundriss: dicke Linien, Längen aussen, Öffnungen gestrichelt
+function drawRoomPlan(ctx, proj, room, y) {
+  const labels = [];
+  const fr = room.frame, cen = fr ? proj([fr.cx, y, fr.cz]) : null;
+  const line = (a, b) => { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); };
+  const place = (a, b, t, bg, out, dist) => {
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (L < 30) return;
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+    let nx = -(b[1] - a[1]) / L, ny = (b[0] - a[0]) / L;
+    if (cen && (nx * (mx - cen[0]) + ny * (my - cen[1]) < 0) === out) { nx = -nx; ny = -ny; }
+    labels.push({ x: mx + nx * dist, y: my + ny * dist, t, bg });
+  };
+  ctx.lineCap = 'round'; ctx.setLineDash([]);
+  for (const w of room.walls) {
+    const a = proj([w.a[0], y, w.a[1]]), b = proj([w.b[0], y, w.b[1]]);
+    if (!a || !b) continue;
+    ctx.strokeStyle = '#0A1511'; ctx.lineWidth = 5; line(a, b);
+    place(a, b, fmtLen(w.len), '#3F525E', true, 20);
+  }
+  for (const o of room.openings) {
+    const a = proj([o.a[0], y, o.a[1]]), b = proj([o.b[0], y, o.b[1]]);
+    if (!a || !b) continue;
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = '#BB1E10'; ctx.lineWidth = 3; line(a, b); ctx.setLineDash([]);
+    place(a, b, fmtLen(o.w), '#BB1E10', false, 20);
+  }
+  return labels;
+}
 function drawLines(ctx, proj, lines, opts = {}) {
-  const s = opts.scale || 1, labels = [];
+  const s = opts.scale || 1, labels = opts.labels ? opts.labels.slice() : [];
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   const seg = (a, b, dashed) => {
     ctx.setLineDash(dashed ? [10 * s, 8 * s] : []);
@@ -807,7 +1086,7 @@ function drawLines(ctx, proj, lines, opts = {}) {
     }
     placed.push({ x: L.x, y, w });
     roundRect(ctx, L.x - w / 2, y - hh / 2, w, hh, 6 * s);
-    ctx.fillStyle = L.live ? 'rgba(10,21,17,.82)' : '#066A50'; ctx.fill();
+    ctx.fillStyle = L.bg || (L.live ? 'rgba(10,21,17,.82)' : '#066A50'); ctx.fill();
     ctx.fillStyle = '#FFFFFF'; ctx.fillText(L.t, L.x, y + 0.5 * s);
   }
 }
@@ -920,6 +1199,7 @@ function arReset(mode) {
   S.lines = []; S.hit = null; S.rec = false; S.full = false;
   S.camTry = !!S.camReader && !PARAMS.has('nocam'); S.camOk = false; S.camBlank = 0;
   S.lastInt = 0; S.lastUi = 0; S.tracking = false; S.everTracked = false; S.depthOk = false;
+  S.prevT = 0; S.rotV = 0; S.movV = 0; S.fast = false;
   setArMode(mode);
   $('#arStatus').textContent = 'AR startet …';
   $('#arLive').hidden = true;
@@ -931,12 +1211,26 @@ function onXRFrame(t, frame) {
   const view = pose && pose.views[0];
   S.tracking = !!(pose && !pose.emulatedPosition);
   if (S.tracking) S.everTracked = true;
+  if (pose) trackSpeed(t, pose.transform);
   if (S.mode === 'measure') updateHit(frame, view);
-  if (view && S.rec && S.tracking && S.depthOk && t - S.lastInt > 160) { S.lastInt = t; integrateFrame(frame, view); }
+  if (view && S.rec && S.tracking && S.depthOk && !S.fast && t - S.lastInt > 160) { S.lastInt = t; integrateFrame(frame, view); }
   S.preview.flush();
   S.renderer.render(S.scene, S.camera);
   drawAr(view);
   if (t - S.lastUi > 250) { S.lastUi = t; updateArUi(); }
+}
+
+// Dreh- und Bewegungsgeschwindigkeit (geglättet). Bei schneller Bewegung sind Tiefe und Pose unscharf.
+function trackSpeed(t, tr) {
+  const q = tr.orientation, p = tr.position;
+  if (S.prevT && t > S.prevT) {
+    const dt = (t - S.prevT) / 1000, a = S.prevQ, b = S.prevP;
+    const dot = Math.min(1, Math.abs(q.x * a.x + q.y * a.y + q.z * a.z + q.w * a.w));
+    const rot = 2 * Math.acos(dot) / dt, mov = Math.hypot(p.x - b.x, p.y - b.y, p.z - b.z) / dt;
+    S.rotV = S.rotV * 0.7 + rot * 0.3; S.movV = S.movV * 0.7 + mov * 0.3;
+  }
+  S.prevT = t; S.prevQ = { x: q.x, y: q.y, z: q.z, w: q.w }; S.prevP = { x: p.x, y: p.y, z: p.z };
+  S.fast = S.rotV > MAX_ROT || S.movV > MAX_MOVE;
 }
 
 function updateHit(frame, view) {
@@ -1027,7 +1321,8 @@ function updateArUi() {
   else if (S.mode === 'scan') {
     if (!S.depthOk) hint = 'Keine Tiefendaten auf diesem Gerät. Wechsle zu «Messen».';
     else if (S.full) hint = 'Speicher voll. Mit «Fertig» speichern.';
-    else if (S.rec) hint = 'Langsam bewegen, 0,5 bis 3 m Abstand. Boden, Wände, Ecken und Decke abfahren.';
+    else if (S.rec && S.fast) hint = 'Langsamer bewegen. Bei schneller Bewegung wird nichts aufgenommen.';
+    else if (S.rec) hint = 'Langsam alle Wände abfahren, 1 bis 2,5 m Abstand. Dazu Boden, Ecken und Decke.';
     else if (n) hint = 'Pausiert. Weiter scannen oder mit «Fertig» speichern.';
     else hint = 'Tippe «Aufnahme starten» und schwenke das Handy langsam über den Raum.';
   } else {
@@ -1090,7 +1385,7 @@ function showArProblem(code) {
 }
 
 let pendingResult = null;
-function onArEnd() {
+async function onArEnd() {
   if (!S.session && !S.fusion) return;
   S.session = null;
   S.renderer.setAnimationLoop(null);
@@ -1100,8 +1395,11 @@ function onArEnd() {
   $('#arUi').hidden = true;
   if (toastEl.parentNode === $('#arUi')) hideToast();
   const measures = S.lines.filter(l => l.pts.length >= 2).map(l => ({ id: uid(), pts: l.pts.map(p => p.map(v => Math.round(v * 10000) / 10000)) }));
-  const res = S.fusion && S.fusion.n ? S.fusion.finalize() : { n: 0, pos: null, col: null, floorY: null, colored: false };
+  const fusion = S.fusion;
   S.fusion = null; S.lines = [];
+  if (fusion && fusion.n) { toast('Scan wird aufbereitet …'); await new Promise(r => setTimeout(r, 60)); }
+  const res = fusion && fusion.n ? fusion.finalize() : { n: 0, pos: null, col: null, floorY: null, colored: false };
+  hideToast();
   if (!res.n && !measures.length) { toast('Nichts aufgenommen.'); return; }
   if (res.floorY == null) res.floorY = Math.min(...measures.flatMap(m => m.pts.map(p => p[1])));
   res.measures = measures;
@@ -1148,7 +1446,8 @@ $('#svYes').addEventListener('click', () => { pendingResult = null; saveDlg.clos
 const V = {
   r: null, scene: null, cam: null, ortho: null, ctl: null, ctlPlan: null, pts: null, geo: null, mat: null, matPlan: null,
   grid: null, gridPlan: null, planes: null, mode: '3d', measuring: false, scan: null, pending: null, size: 1,
-  need: false, box: null, floorY: 0, ray: new THREE.Raycaster(), pr: 1, loadedId: null, token: 0
+  need: false, box: null, floorY: 0, ray: new THREE.Raycaster(), pr: 1, loadedId: null, token: 0,
+  showRoom: true, roomObj: null
 };
 const PLAN_LO = 0.15, PLAN_HI = 1.9, PLAN_MEASURE_Y = 1.0;
 
@@ -1228,7 +1527,9 @@ function drawViewerOverlay(cam) {
   const proj = viewerProjector(cam);
   const lines = V.scan.measures.slice();
   if (V.pending) lines.push({ pts: [V.pending] });
-  drawLines(ctx, proj, lines);
+  const room = V.scan.room;
+  const extra = V.mode === 'plan' && V.showRoom && room && room.walls.length ? drawRoomPlan(ctx, proj, room, V.floorY + PLAN_MEASURE_Y) : [];
+  drawLines(ctx, proj, lines, { labels: extra });
   if (V.mode === 'plan') drawScaleBar(ctx, W, H);
 }
 function drawScaleBar(ctx, W, H) {
@@ -1272,7 +1573,9 @@ async function openViewer(id) {
   V.scan = s; V.pending = null;
   setMeasuring(false);
   renderMeasList(); renderScanEdit();
-  if (V.loadedId === id) { resizeViewer(); return; }
+  if (V.loadedId === id) { renderRoomCard(); resizeViewer(); return; }
+  $('#roomCard').hidden = true;
+  buildRoom3D(null);
   if (V.pts) { V.scene.remove(V.pts); V.geo.dispose(); V.pts = null; V.geo = null; }
   for (const g of [V.grid, V.gridPlan]) if (g) { V.scene.remove(g); g.geometry.dispose(); g.material.dispose(); }
   V.grid = V.gridPlan = null;
@@ -1281,9 +1584,22 @@ async function openViewer(id) {
   const d = s.n ? await loadPoints(s) : null;
   if (my !== V.token) return;
   if (s.n && !d) { msg.textContent = 'Die Punktdaten dieses Scans fehlen auf diesem Gerät.'; V.loadedId = null; return; }
+  if (d && (!s.room || s.room.v !== ROOMV)) {
+    msg.textContent = ''; msg.append(h('div', null, h('div', { class: 'spinner' }), 'Raum wird erkannt …'));
+    await new Promise(r => setTimeout(r, 30));
+    if (my !== V.token) return;
+    try { s.room = detectRoom(d.pos); s.floorY = s.room.floor; } catch (err) { console.warn('Raumerkennung', err); s.room = null; }
+    saveIndex();
+  }
   msg.hidden = true;
   V.loadedId = id;
   V.floorY = s.floorY != null ? s.floorY : (d ? percentileY(d.pos, 0.01) : 0);
+  buildRoom3D(s.room);
+  const fr = s.room && s.room.frame;
+  // Grundriss so drehen, dass die Wände waagrecht und senkrecht liegen
+  V.ortho.up.set(fr ? Math.sin(fr.th) : 0, 0, fr ? -Math.cos(fr.th) : -1);
+  renderRoomCard();
+  updateRoomVis();
   V.planes[0].constant = -(V.floorY + PLAN_LO);
   V.planes[1].constant = V.floorY + PLAN_HI;
   if (d) {
@@ -1296,9 +1612,14 @@ async function openViewer(id) {
   }
   V.box = robustBox(d && d.pos, s.measures.flatMap(m => m.pts));
   const c = V.box.getCenter(new THREE.Vector3()), sz = V.box.getSize(new THREE.Vector3());
-  const gs = Math.ceil(Math.max(sz.x, sz.z)) + 4;
+  const gs = 2 * Math.ceil((Math.max(sz.x, sz.z) + 4) / 2);
   V.grid = makeGrid(gs, 0x3B5C50, 0x22392F, V.floorY, c.x, c.z);
   V.gridPlan = makeGrid(gs, 0xC9D6CF, 0xE2EAE5, V.floorY, c.x, c.z);
+  if (fr) {
+    // Raster parallel zu den Wänden, Linien durch eine Raumecke
+    const cs = Math.cos(fr.th), sn = Math.sin(fr.th);
+    for (const g of [V.grid, V.gridPlan]) { g.rotation.y = -fr.th; g.position.set(fr.cx + fr.umin * cs - fr.vmin * sn, V.floorY, fr.cz + fr.umin * sn + fr.vmin * cs); }
+  }
   V.scene.add(V.grid, V.gridPlan);
   applyMode();
   resetCamera();
@@ -1334,9 +1655,69 @@ function applyMode() {
   if (V.pts) V.pts.material = plan ? V.matPlan : V.mat;
   if (V.grid) V.grid.visible = !plan;
   if (V.gridPlan) V.gridPlan.visible = plan;
+  updateRoomVis();
   V.pending = null;
   updateStageHint();
   requestRender();
+}
+// Erkannte Wände in 3D: halbtransparente Flächen mit Kanten vom Boden bis zur Decke
+function buildRoom3D(room) {
+  if (V.roomObj) {
+    V.scene.remove(V.roomObj);
+    V.roomObj.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose(); });
+    V.roomObj = null;
+  }
+  if (!room || !room.walls.length) return;
+  const f = room.floor, top = room.ceil != null ? room.ceil : f + 2.5;
+  const pos = [], idx = [], edges = [];
+  for (const w of room.walls) {
+    const [ax, az] = w.a, [bx, bz] = w.b, o = pos.length / 3;
+    pos.push(ax, f, az, bx, f, bz, bx, top, bz, ax, top, az);
+    idx.push(o, o + 1, o + 2, o, o + 2, o + 3);
+    edges.push(ax, f, az, bx, f, bz, bx, f, bz, bx, top, bz, bx, top, bz, ax, top, az, ax, top, az, ax, f, az);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
+  const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xD6E8DF, transparent: true, opacity: 0.16, side: THREE.DoubleSide, depthWrite: false }));
+  const eg = new THREE.BufferGeometry();
+  eg.setAttribute('position', new THREE.Float32BufferAttribute(edges, 3));
+  const lines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color: 0x8FD14F }));
+  const grp = new THREE.Group(); grp.add(mesh, lines);
+  grp.visible = V.mode !== 'plan' && V.showRoom;
+  V.roomObj = grp; V.scene.add(grp);
+}
+function updateRoomVis() {
+  const has = !!(V.scan && V.scan.room && V.scan.room.walls.length);
+  if (V.roomObj) V.roomObj.visible = V.mode !== 'plan' && V.showRoom;
+  V.matPlan.color.set(V.showRoom && has ? 0x8FA39A : 0x1D2B26);
+  $('#vRoom').hidden = !has;
+  $('#vRoom').setAttribute('aria-pressed', String(V.showRoom));
+  requestRender();
+}
+function renderRoomCard() {
+  const s = V.scan, card = $('#roomCard');
+  if (!s || !s.n) { card.hidden = true; return; }
+  card.hidden = false;
+  const r = s.room, dims = $('#roomDims'), meta = $('#roomMeta'), note = $('#roomNote');
+  dims.textContent = ''; meta.textContent = ''; note.textContent = '';
+  if (!r || r.walls.length < 2) {
+    $('#roomSub').textContent = 'nicht erkannt';
+    dims.textContent = r && r.height ? `Höhe ${fmtLen(r.height)}` : 'Keine Wände erkannt';
+    note.textContent = 'Tipp: Beim Scannen aus der Raummitte alle Wände auf 1 bis 2,5 m Abstand langsam abfahren, dazu Boden und Decke. Dann werden Wände, Masse und Grundriss erkannt.';
+    return;
+  }
+  $('#roomSub').textContent = r.dims ? 'automatisch erkannt' : 'teilweise erkannt';
+  const parts = [];
+  if (r.dims) parts.push(`${fmtLen(r.dims.a)} × ${fmtLen(r.dims.b)}`);
+  if (r.height) parts.push(`Höhe ${fmtLen(r.height)}`);
+  dims.textContent = parts.join(' · ') || plural(r.walls.length, 'Wand', 'Wände');
+  const m = [];
+  if (r.area) m.push(`Fläche ca. ${r.area.toFixed(1)} m²`);
+  m.push(`${plural(r.walls.length, 'Wand', 'Wände')}: ${r.walls.map(w => fmtLen(w.len)).join(', ')}`);
+  if (r.openings.length) m.push(`${r.openings.length === 1 ? 'Öffnung' : 'Öffnungen'}: ${r.openings.map(o => fmtLen(o.w)).join(', ')}`);
+  meta.textContent = m.join(' · ');
+  note.textContent = (r.dims ? '' : 'Nicht alle Wände erfasst. Für Raummasse beim nächsten Scan jede Wand abfahren. ')
+    + 'Lichtmasse (Wandinnenseite), aus der Punktwolke gerechnet, typisch ±2 bis 5 cm. Für verbindliche Masse nachmessen.';
 }
 function setMeasuring(on) {
   V.measuring = on; V.pending = null;
@@ -1452,7 +1833,8 @@ async function snapshotBlob() {
   ctx.fillStyle = '#FFFFFF'; ctx.textBaseline = 'middle';
   ctx.font = `700 ${Math.round(16 * pr)}px "Roboto Condensed", Roboto, Arial, sans-serif`;
   ctx.textAlign = 'left';
-  ctx.fillText(`${V.scan.name}`.slice(0, 60), Math.round(12 * pr), H + foot / 2 + pr);
+  const rd = V.scan.room && V.scan.room.dims;
+  ctx.fillText(`${V.scan.name}`.slice(0, 48) + (rd ? `  ·  ${fmtLen(rd.a)} × ${fmtLen(rd.b)}` : ''), Math.round(12 * pr), H + foot / 2 + pr);
   ctx.font = `400 ${Math.round(13 * pr)}px Roboto, Arial, sans-serif`; ctx.textAlign = 'right';
   ctx.fillText(`${V.mode === 'plan' ? 'Grundriss' : '3D-Ansicht'} · ${fmtDate(V.scan.created)}`, W - Math.round(12 * pr), H + foot / 2 + pr);
   return canvasBlob(c, 'image/png');
@@ -1485,6 +1867,72 @@ function plyBlob(s, d) {
   return new Blob([buf], { type: 'application/octet-stream' });
 }
 
+// DXF-Grundriss (R12, Meter): Wände, Öffnungen, Masse, Punkte des Wandbands. Achsen nach den Wänden ausgerichtet.
+function planTransform(s, d) {
+  const fr = s.room && s.room.frame;
+  if (fr) {
+    const cs = Math.cos(fr.th), sn = Math.sin(fr.th);
+    return (x, z) => { const X = x - fr.cx, Z = z - fr.cz; return [X * cs + Z * sn - fr.umin, fr.vmax - (-X * sn + Z * cs)]; };
+  }
+  let xmin = Infinity, zmax = -Infinity;
+  const pts = d ? d.pos : new Float32Array(s.measures.flatMap(m => m.pts.flat()));
+  for (let i = 0; i < pts.length; i += 3) { if (pts[i] < xmin) xmin = pts[i]; if (pts[i + 2] > zmax) zmax = pts[i + 2]; }
+  if (!isFinite(xmin)) { xmin = 0; zmax = 0; }
+  return (x, z) => [x - xmin, zmax - z];
+}
+function dxfBlob(s, d) {
+  const T = planTransform(s, d), out = [];
+  const ascii = t => String(t).normalize('NFKD').replace(/[^\x20-\x7E]/g, '');
+  const put = (...a) => { for (const v of a) out.push(String(v)); };
+  const f4 = v => v.toFixed(4);
+  const line = (layer, color, p, q) => { const [x1, y1] = T(p[0], p[1]), [x2, y2] = T(q[0], q[1]); put(0, 'LINE', 8, layer, 62, color, 10, f4(x1), 20, f4(y1), 30, 0, 11, f4(x2), 21, f4(y2), 31, 0); };
+  const text = (layer, color, xy, str) => put(0, 'TEXT', 8, layer, 62, color, 10, f4(xy[0]), 20, f4(xy[1]), 30, 0, 40, '0.1000', 1, ascii(str), 72, 1, 11, f4(xy[0]), 21, f4(xy[1]), 31, 0);
+  put(0, 'SECTION', 2, 'HEADER', 9, '$INSUNITS', 70, 6, 0, 'ENDSEC', 0, 'SECTION', 2, 'ENTITIES');
+  const f = s.floorY || 0, r = s.room;
+  if (d) {
+    const n = d.pos.length / 3, step = Math.max(1, Math.floor(n / 60000));
+    let c = 0;
+    for (let i = 0; i < n && c < 25000; i += step) {
+      const y = d.pos[i * 3 + 1];
+      if (y < f + 0.3 || y > f + 1.9) continue;
+      const [x, yy] = T(d.pos[i * 3], d.pos[i * 3 + 2]);
+      put(0, 'POINT', 8, 'PUNKTE', 62, 8, 10, f4(x), 20, f4(yy), 30, 0); c++;
+    }
+  }
+  if (r && r.walls.length) {
+    const mids = r.walls.map(w => T((w.a[0] + w.b[0]) / 2, (w.a[1] + w.b[1]) / 2));
+    const cx = mids.reduce((a, m) => a + m[0], 0) / mids.length, cy = mids.reduce((a, m) => a + m[1], 0) / mids.length;
+    r.walls.forEach((w, i) => {
+      line('WAENDE', 7, w.a, w.b);
+      const [mx, my] = mids[i], dx = cx - mx, dy = cy - my, L = Math.hypot(dx, dy) || 1;
+      text('WANDMASSE', 7, [mx + dx / L * 0.18, my + dy / L * 0.18], fmtLen(w.len));
+    });
+    for (const o of r.openings) {
+      line('OEFFNUNGEN', 1, o.a, o.b);
+      const [x1, y1] = T(o.a[0], o.a[1]), [x2, y2] = T(o.b[0], o.b[1]);
+      text('OEFFNUNGEN', 1, [(x1 + x2) / 2, (y1 + y2) / 2 + 0.15], `Oeffnung ${fmtLen(o.w)}`);
+    }
+  }
+  for (const m of s.measures) {
+    for (let k = 1; k < m.pts.length; k++) {
+      const p = m.pts[k - 1], q = m.pts[k];
+      line('MASSE', 3, [p[0], p[2]], [q[0], q[2]]);
+      const [x1, y1] = T(p[0], p[2]), [x2, y2] = T(q[0], q[2]);
+      text('MASSE', 3, [(x1 + x2) / 2, (y1 + y2) / 2 + 0.12], fmtLen(dist3(p, q)));
+    }
+  }
+  put(0, 'ENDSEC', 0, 'EOF');
+  return new Blob([out.join('\r\n') + '\r\n'], { type: 'application/dxf' });
+}
+$('#btnDxf').addEventListener('click', async () => {
+  const s = V.scan; if (!s) return;
+  const d = s.n ? await loadPoints(s) : null;
+  if (!d && !s.measures.length) { toast('Keine Daten für einen Grundriss.'); return; }
+  download(dxfBlob(s, d), `${slug(s.name)}_Grundriss.dxf`);
+  const nw = s.room ? s.room.walls.length : 0;
+  toast(nw ? `DXF mit ${plural(nw, 'Wand', 'Wänden')} gespeichert` : 'DXF gespeichert (keine Wände erkannt)');
+});
+$('#vRoom').addEventListener('click', () => { V.showRoom = !V.showRoom; updateRoomVis(); });
 $('#btnShot').addEventListener('click', async () => {
   if (!V.scan || !V.r) return;
   try { await deliver(await snapshotBlob(), `${slug(V.scan.name)}_${V.mode === 'plan' ? 'Grundriss' : '3D'}.png`, 'image/png'); }
@@ -1664,7 +2112,7 @@ async function init() {
   renderTop();
 }
 // Für Tests und Fehlersuche auf dem Gerät
-window.__bs3d = { Fusion, integrateDepth, unprojector, makeExample, state: S, viewer: V };
+window.__bs3d = { Fusion, integrateDepth, unprojector, makeExample, detectRoom, estimateLevels, state: S, viewer: V };
 init();
 </script>
 
