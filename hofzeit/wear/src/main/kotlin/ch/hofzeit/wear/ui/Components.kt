@@ -84,7 +84,7 @@ fun chipTint(color: Color): Color = color.copy(alpha = 0.30f).compositeOver(Chip
 @Composable
 fun roundButtonSize(): Dp {
     val width = LocalConfiguration.current.screenWidthDp
-    return (width * 0.25f).coerceIn(46f, 60f).dp
+    return (width * 0.23f).coerceIn(44f, 58f).dp
 }
 
 /** Spürbares Vibrieren, auch bei der Arbeit. */

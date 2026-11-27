@@ -56,6 +56,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -138,11 +139,19 @@ fun PhoneScreen(
                         Icon(Icons.Filled.Share, "Monat teilen")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                ),
+                colors = if (MaterialTheme.colorScheme.background.luminance() > 0.5f) {
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    )
+                } else {
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        actionIconContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                },
             )
         },
         snackbarHost = { SnackbarHost(snackbar) },
@@ -350,8 +359,8 @@ private fun DayCard(date: LocalDate, today: LocalDate, sessions: List<Session>, 
             StackedBar(totals)
             Spacer(Modifier.height(6.dp))
             Text(
-                totals.filter { !it.isPause }.joinToString("   ") { it.emoji + " " + it.name + " " + Format.hm(it.ms) } +
-                    (totals.firstOrNull { it.isPause }?.let { "   ☕ Pause " + Format.hm(it.ms) } ?: ""),
+                // Geschützte Leerzeichen: Symbol, Name und Dauer bleiben beim Umbruch zusammen.
+                totals.joinToString("   ") { (it.emoji + " " + it.name + " " + Format.hm(it.ms)).replace(' ', '\u00A0') },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

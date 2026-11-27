@@ -3,6 +3,7 @@ package ch.hofzeit.wear.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -138,13 +139,17 @@ fun RunningScreen(
             trackColor = Color.Transparent,
             strokeWidth = 5.dp,
         )
-        Column(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        // Feste Anteile der Bildschirmhöhe, damit die Knöpfe auch auf kleinen runden Uhren
+        // ganz innerhalb des Rings liegen.
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val h = maxHeight
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = h * 0.15f)
+                    .padding(horizontal = 24.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 if (cur.emoji.isNotEmpty()) {
                     Text(cur.emoji, fontSize = 15.sp)
                     Spacer(Modifier.width(4.dp))
@@ -157,21 +162,33 @@ fun RunningScreen(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            Text(
-                Format.stopwatch(cur.durationMs(now)),
-                style = MaterialTheme.typography.display1.copy(fontFeatureSettings = "tnum"),
-                maxLines = 1,
-            )
-            Text(
-                if (cur.isPause) "danach: " + (session.lastWork?.name ?: "")
-                else "Arbeit heute " + Format.hours(todayWorkMs),
-                style = MaterialTheme.typography.caption1,
-                color = MaterialTheme.colors.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = h * 0.25f)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    Format.stopwatch(cur.durationMs(now)),
+                    style = MaterialTheme.typography.display1.copy(fontFeatureSettings = "tnum", lineHeight = 44.sp),
+                    maxLines = 1,
+                )
+                Text(
+                    if (cur.isPause) "danach: " + (session.lastWork?.name ?: "")
+                    else "Arbeit heute " + Format.hours(todayWorkMs),
+                    style = MaterialTheme.typography.caption1,
+                    color = MaterialTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = h * 0.72f - size / 2),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
                 if (cur.isPause) {
                     RoundButton(PlayIcon, "Weiter", ButtonDefaults.buttonColors(backgroundColor = HofGreen), size, onResume)
                 } else {

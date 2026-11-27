@@ -2,6 +2,7 @@ package ch.hofzeit.wear
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.ComposeView
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import ch.hofzeit.core.DefaultTasks
@@ -57,12 +58,16 @@ class Screenshots {
         .switchTo(task("maschinen"), t(9, 0) - 86_400_000)
         .finish(t(11, 15) - 86_400_000)!!
 
+    // Wear-Listen (ScalingLazyColumn) erscheinen erst nach dem ersten Bild, darum etwas später fotografieren.
     private fun shot(now: Long, content: @Composable () -> Unit) {
-        paparazzi.snapshot {
-            CompositionLocalProvider(LocalNow provides now) {
-                HofzeitTheme { content() }
+        val view = ComposeView(paparazzi.context).apply {
+            setContent {
+                CompositionLocalProvider(LocalNow provides now) {
+                    HofzeitTheme { content() }
+                }
             }
         }
+        paparazzi.snapshot(view, offsetMillis = 1_000)
     }
 
     @Test
