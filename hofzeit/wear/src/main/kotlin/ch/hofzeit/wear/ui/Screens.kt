@@ -80,9 +80,10 @@ fun HomeScreen(
     onHistory: () -> Unit,
     onTasks: () -> Unit,
 ) {
-    val listState = rememberScalingLazyListState()
     val now = LocalNow.current
     val cur = running?.current
+    // Läuft etwas, steht der Knopf «läuft» in der Mitte, sonst die erste Tätigkeit.
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = if (cur != null) 0 else 1)
     ScreenScaffold(listState) {
         ScalingLazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             if (cur != null) {
@@ -410,7 +411,7 @@ fun TasksScreen(
     ScreenScaffold(listState) {
         ScalingLazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
             item { ListHeader { Text("Tätigkeiten") } }
-            item { MenuChip("Neue Tätigkeit", "sprechen oder tippen", Icons.Filled.Add, onAdd, color = HofGreen) }
+            item { MenuChip("Neue Tätigkeit", "sprechen/tippen", Icons.Filled.Add, onAdd, color = HofGreen) }
             items(tasks.filter { !it.isPause }, key = { it.id }) { task ->
                 TaskChip(task, null, onClick = { onOpen(task) })
             }
