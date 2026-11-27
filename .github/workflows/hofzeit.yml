@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'hofzeit/**'
+      - '!hofzeit/**/*.md'
       - '.github/workflows/hofzeit.yml'
   workflow_dispatch:
 
@@ -12,7 +13,7 @@ permissions:
 
 concurrency:
   group: hofzeit-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
