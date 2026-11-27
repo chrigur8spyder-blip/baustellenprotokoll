@@ -41,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
@@ -83,9 +84,14 @@ fun HomeScreen(
     val now = LocalNow.current
     val cur = running?.current
     // Läuft etwas, steht der Knopf «läuft» in der Mitte, sonst die erste Tätigkeit.
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = if (cur != null) 0 else 1)
+    val centerIndex = if (cur != null) 0 else 1
+    val listState = rememberScalingLazyListState(initialCenterItemIndex = centerIndex)
     ScreenScaffold(listState) {
-        ScalingLazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+        ScalingLazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+            autoCentering = AutoCenteringParams(itemIndex = centerIndex),
+        ) {
             if (cur != null) {
                 item {
                     val color = if (cur.isPause) PauseGrey else taskColor(cur.color)
