@@ -3,6 +3,7 @@ package ch.hofzeit.wear
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalInspectionMode
 import app.cash.paparazzi.DeviceConfig
 import app.cash.paparazzi.Paparazzi
 import ch.hofzeit.core.DefaultTasks
@@ -62,7 +63,8 @@ class Screenshots {
     private fun shot(now: Long, content: @Composable () -> Unit) {
         val view = ComposeView(paparazzi.context).apply {
             setContent {
-                CompositionLocalProvider(LocalNow provides now) {
+                // Wie die Vorschau in Android Studio: Wear-Listen zeigen dann sofort ihren Inhalt.
+                CompositionLocalProvider(LocalNow provides now, LocalInspectionMode provides true) {
                     HofzeitTheme { content() }
                 }
             }
