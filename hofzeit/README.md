@@ -10,10 +10,12 @@ Für **Galaxy Watch 4 oder neuer** (Wear OS) und ein **Android-Handy**.
 | Start | Arbeit läuft | Pause | Fertig |
 |:-:|:-:|:-:|:-:|
 | ![Start](bilder/uhr-start.png) | ![Läuft](bilder/uhr-laeuft.png) | ![Pause](bilder/uhr-pause.png) | ![Zusammenfassung](bilder/uhr-zusammenfassung.png) |
+| **Wechseln** | **Heute** | **Verlauf** | **Handgelenk unten** |
+| ![Wechseln](bilder/uhr-wechseln.png) | ![Heute](bilder/uhr-heute.png) | ![Verlauf](bilder/uhr-verlauf.png) | ![Always-On](bilder/uhr-always-on.png) |
 
-| Handy: Monatsübersicht |
-|:-:|
-| ![Handy](bilder/handy-uebersicht.png) |
+| Handy: Monatsübersicht | Dunkelmodus |
+|:-:|:-:|
+| ![Handy](bilder/handy-uebersicht.png) | ![Handy dunkel](bilder/handy-uebersicht-dunkel.png) |
 
 ---
 
