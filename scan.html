@@ -167,6 +167,9 @@ input:focus-visible{outline:3px solid var(--focus);outline-offset:1px;border-col
 .room-dims{font:700 24px/1.2 var(--font-head);font-variant-numeric:tabular-nums}
 .room-meta{font-size:15px;color:var(--fg);font-variant-numeric:tabular-nums}
 .room-note{font-size:14px;color:var(--muted);margin:0}
+.room-meta div+div{margin-top:2px}
+.check{display:flex;align-items:center;gap:12px;min-height:48px;cursor:pointer;font-size:16px}
+.check input{width:24px;height:24px;margin:0;accent-color:var(--dunkelgruen);flex:none}
 .stage-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);padding:8px 12px;border-radius:10px;background:rgba(10,21,17,.84);color:#fff;font-size:14.5px;text-align:center;pointer-events:none}
 .stage-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:#CFE0D7;pointer-events:none}
 .spinner{width:30px;height:30px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#71A934;animation:spin .8s linear infinite;margin:0 auto 10px}
@@ -187,7 +190,7 @@ dialog::backdrop{background:var(--scrim)}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:150;width:max-content;max-width:calc(100% - 32px);background:var(--fg);color:var(--bg);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 28px rgba(0,0,0,.25);font-size:15.5px}
 .toast-btn{background:none;border:0;color:var(--bg);font:700 15.5px var(--font-head);text-decoration:underline;text-underline-offset:3px;min-height:40px;padding:0 4px;cursor:pointer}
 dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
-.ar .toast{top:calc(140px + env(safe-area-inset-top,0px));bottom:auto;background:#fff;color:#0A1511}
+.ar .toast{top:auto;bottom:calc(236px + env(safe-area-inset-bottom,0px));background:#fff;color:#0A1511}
 
 /* AR-Oberfläche (DOM-Overlay während der AR-Sitzung) */
 .ar{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;color:#fff;background:transparent;font-family:var(--font);-webkit-user-select:none;user-select:none;touch-action:manipulation}
@@ -271,19 +274,20 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
     <ul class="rows" id="scanList"></ul>
     <div class="empty" id="scanEmpty" hidden>
       <h3>Noch keine Scans</h3>
-      <p>Mit «Raum scannen» startet die Kamera im AR-Modus. Danach kannst du den Raum in 3D und als Grundriss ansehen und darin messen.</p>
+      <p>Mit «Raum erfassen» startet die Kamera im AR-Modus. Du tippst die Bodenecken an, daraus entstehen Wände, Grundriss und alle Masse.</p>
     </div>
     <details class="card head" id="help">
       <summary><span class="sum-title">So funktioniert's</span><span class="sum-meta">Ablauf, Voraussetzungen, Genauigkeit</span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></summary>
       <div class="head-body">
         <ol class="steps">
-          <li><strong>Raum scannen.</strong> «Aufnahme starten», aus der Raummitte langsam alle Wände auf 1 bis 2,5 m Abstand abfahren, dazu Boden und Decke. Die erfassten Flächen werden grün eingefärbt.</li>
-          <li><strong>Raum wird erkannt.</strong> Aus der Punktwolke rechnet die App Boden, Decke und Wände: Grundriss mit Wandlängen, Raumhöhe, Fläche und Türöffnungen.</li>
-          <li><strong>Messen.</strong> Im AR-Modus auf «Messen» wechseln, das Ziel anpeilen und Punkte setzen. Oder später im Scan zwei Punkte antippen.</li>
-          <li><strong>Exportieren.</strong> Bild fürs Protokoll, DXF-Grundriss für CAD, PLY-Punktwolke für CloudCompare.</li>
+          <li><strong>Boden finden.</strong> «Raum erfassen», Handy auf den Boden richten und langsam bewegen, bis «Boden erkannt» erscheint.</li>
+          <li><strong>Ecken antippen.</strong> Das Fadenkreuz reihum in jede Bodenecke richten (wo die Wände auf den Boden treffen) und «+ Ecke» tippen. Zurück an der ersten Ecke schliesst sich der Raum. Die Wände erscheinen sofort im Kamerabild.</li>
+          <li><strong>Raumhöhe.</strong> Fadenkreuz auf die Kante zwischen Wand und Decke richten und «Höhe setzen» tippen.</li>
+          <li><strong>Türen und Fenster</strong> (optional): untere Ecke und gegenüberliegende obere Ecke antippen.</li>
+          <li><strong>Ergebnis.</strong> Grundriss mit Wandlängen, Fläche, Umfang, Wandfläche, Volumen. Export als Bild, DXF (CAD) oder PLY. Zusätzlich gibt es «Punkte» (Punktwolke) und «Messen».</li>
         </ol>
         <p><strong>Voraussetzungen:</strong> Android-Handy mit ARCore, Chrome und der App «Google Play-Dienste für AR». Zum Scannen braucht das Gerät zusätzlich Tiefendaten (ARCore Depth, bei den meisten neueren Geräten vorhanden). Messen geht auch ohne.</p>
-        <p><strong>Genauigkeit:</strong> Auf 0,5 bis 3 m Abstand meist wenige Zentimeter, auf grössere Distanz ungenauer. Verbindliche Masse mit Laser oder Messband kontrollieren.</p>
+        <p><strong>Genauigkeit:</strong> Ecken aus 1 bis 3 m Abstand anpeilen, dann meist ±1 bis 3 cm. Verbindliche Masse mit Laser oder Messband kontrollieren.</p>
         <p class="small">Alle Scans bleiben auf diesem Gerät gespeichert.</p>
       </div>
     </details>
@@ -313,6 +317,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       <div class="room-head"><h2 class="room-title" id="roomTitle">Raum</h2><span class="room-sub" id="roomSub">automatisch erkannt</span></div>
       <div class="room-dims" id="roomDims"></div>
       <div class="room-meta" id="roomMeta"></div>
+      <label class="check" id="roomRectRow" hidden><input type="checkbox" id="roomRect"><span>Ecken rechtwinklig ausrichten (90°)</span></label>
       <p class="room-note" id="roomNote"></p>
     </section>
     <div class="list-head"><h2 id="hMeas">Masse</h2><span class="stats" id="mStats"></span></div>
@@ -324,6 +329,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       <summary><span class="sum-title">Scan bearbeiten</span><span class="sum-meta" id="scanEditMeta"></span><svg class="i chev" aria-hidden="true"><use href="#i-chev"/></svg></summary>
       <div class="head-body">
         <label class="field"><span class="lbl">Name</span><input type="text" id="sName" autocomplete="off"></label>
+        <label class="field" id="sHeightRow" hidden><span class="lbl">Raumhöhe in m</span><input type="text" id="sHeight" inputmode="decimal" autocomplete="off" placeholder="z. B. 2.50"></label>
         <div class="danger-zone">
           <button type="button" class="btn ghost warn" id="sDel">Scan löschen</button>
           <div class="del-confirm" id="sDelConfirm" hidden>
@@ -339,7 +345,7 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 
 <nav class="actionbar" aria-label="Aktionen">
   <div class="actionbar-inner" id="abHome">
-    <button type="button" class="btn primary" id="btnScan"><svg class="i" aria-hidden="true"><use href="#i-cube"/></svg>Raum scannen</button>
+    <button type="button" class="btn primary" id="btnScan"><svg class="i" aria-hidden="true"><use href="#i-walls"/></svg>Raum erfassen</button>
     <button type="button" class="btn" id="btnMeasure"><svg class="i" aria-hidden="true"><use href="#i-ruler"/></svg>Messen</button>
   </div>
   <div class="actionbar-inner four" id="abViewer" hidden>
@@ -378,6 +384,11 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
   <div class="ar-hint" id="arHint"></div>
   <div class="ar-bottom">
     <div class="ar-live" id="arLive" hidden></div>
+    <div class="ar-row" id="arRoomRow" hidden>
+      <button type="button" class="ar-btn" id="arRUndo">Rückgängig</button>
+      <button type="button" class="ar-btn primary" id="arRMain">+ Ecke</button>
+      <button type="button" class="ar-btn" id="arRNext">Raum schliessen</button>
+    </div>
     <div class="ar-row" id="arScanRow">
       <button type="button" class="ar-rec" id="arRec" aria-pressed="false"><span class="ar-rec-dot" aria-hidden="true"></span><span id="arRecLbl">Aufnahme starten</span></button>
     </div>
@@ -387,7 +398,8 @@ dialog .toast{bottom:calc(24px + env(safe-area-inset-bottom,0px))}
       <button type="button" class="ar-btn" id="arNewLine">Neue Strecke</button>
     </div>
     <div class="ar-seg" role="group" aria-label="Modus">
-      <button type="button" id="arModeScan" aria-pressed="true">Scannen</button>
+      <button type="button" id="arModeRoom" aria-pressed="true">Raum</button>
+      <button type="button" id="arModeScan" aria-pressed="false">Punkte</button>
       <button type="button" id="arModeMeas" aria-pressed="false">Messen</button>
     </div>
   </div>
@@ -898,6 +910,104 @@ function detectRoom(pos) {
   return res;
 }
 
+/* ---------- Raum aus Bodenecken ---------- */
+function polyArea(poly) {
+  let a = 0;
+  for (let i = 0; i < poly.length; i++) { const p = poly[i], q = poly[(i + 1) % poly.length]; a += p[0] * q[1] - q[0] * p[1]; }
+  return Math.abs(a) / 2;
+}
+// Hauptrichtung der Wände (Mittelwert der Kantenwinkel modulo 90°, nach Länge gewichtet)
+function mainDir(poly) {
+  let sx = 0, sy = 0;
+  for (let i = 0; i < poly.length; i++) {
+    const p = poly[i], q = poly[(i + 1) % poly.length], L = Math.hypot(q[0] - p[0], q[1] - p[1]), a = Math.atan2(q[1] - p[1], q[0] - p[0]);
+    sx += L * Math.cos(4 * a); sy += L * Math.sin(4 * a);
+  }
+  let th = Math.atan2(sy, sx) / 4;
+  if (th < 0) th += Math.PI / 2;
+  return th;
+}
+function turnAngles(poly) {
+  const n = poly.length, out = [];
+  for (let i = 0; i < n; i++) {
+    const a = poly[(i + n - 1) % n], b = poly[i], c = poly[(i + 1) % n];
+    let d = (Math.atan2(c[1] - b[1], c[0] - b[0]) - Math.atan2(b[1] - a[1], b[0] - a[0])) * 180 / Math.PI;
+    while (d > 180) d -= 360; while (d < -180) d += 360;
+    out.push(d);
+  }
+  return out;
+}
+// Fast rechtwinklige Grundrisse (auch L-förmig) auf exakt 90° ausrichten
+const canRectify = poly => poly.length >= 4 && turnAngles(poly).every(d => Math.abs(Math.abs(d) - 90) < 8 || Math.abs(d) < 8);
+function rectify(poly) {
+  const th = mainDir(poly), cs = Math.cos(th), sn = Math.sin(th), n = poly.length;
+  const P = poly.map(([x, z]) => [x * cs + z * sn, -x * sn + z * cs]);
+  const lines = [];
+  for (let i = 0; i < n; i++) {
+    const a = P[i], b = P[(i + 1) % n], du = b[0] - a[0], dv = b[1] - a[1], hz = Math.abs(du) >= Math.abs(dv);
+    lines.push({ h: hz, c: hz ? (a[1] + b[1]) / 2 : (a[0] + b[0]) / 2, w: Math.hypot(du, dv) });
+  }
+  const merged = [];
+  for (const l of lines) {
+    const last = merged[merged.length - 1];
+    if (last && last.h === l.h) { last.c = (last.c * last.w + l.c * l.w) / (last.w + l.w); last.w += l.w; } else merged.push({ ...l });
+  }
+  if (merged.length > 1 && merged[0].h === merged[merged.length - 1].h) {
+    const a = merged.pop(), b = merged[0];
+    b.c = (a.c * a.w + b.c * b.w) / (a.w + b.w); b.w += a.w;
+  }
+  if (merged.length < 4 || merged.length % 2) return null;
+  const out = [];
+  for (let k = 0; k < merged.length; k++) {
+    const A = merged[(k + merged.length - 1) % merged.length], B = merged[k];
+    if (A.h === B.h) return null;
+    const u = A.h ? B.c : A.c, v = A.h ? A.c : B.c;
+    out.push([u * cs - v * sn, u * sn + v * cs]);
+  }
+  return out;
+}
+// raw: Bodenecken [[x,z],…], f: Bodenhöhe, height: Raumhöhe oder null, ops: Öffnungen {p0,p1,y0,y1}
+function roomFromPolygon(raw, f, height, ops, useRect) {
+  const r4 = v => Math.round(v * 10000) / 10000;
+  const can = canRectify(raw), rp = useRect && can ? rectify(raw) : null, poly = rp || raw, n = poly.length;
+  const walls = [];
+  let perim = 0;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    walls.push({ a: a.map(r4), b: b.map(r4), len: r4(L) }); perim += L;
+  }
+  const openings = [];
+  for (const o of ops || []) {
+    const mx = (o.p0[0] + o.p1[0]) / 2, mz = (o.p0[1] + o.p1[1]) / 2;
+    let bi = -1, bd = Infinity;
+    walls.forEach((w, i) => {
+      const ex = w.b[0] - w.a[0], ez = w.b[1] - w.a[1], L2 = ex * ex + ez * ez || 1;
+      const t = Math.max(0, Math.min(1, ((mx - w.a[0]) * ex + (mz - w.a[1]) * ez) / L2));
+      const d = Math.hypot(w.a[0] + ex * t - mx, w.a[1] + ez * t - mz);
+      if (d < bd) { bd = d; bi = i; }
+    });
+    if (bi < 0) continue;
+    const w = walls[bi], L = w.len, ux = (w.b[0] - w.a[0]) / L, uz = (w.b[1] - w.a[1]) / L;
+    const proj = p => Math.max(0, Math.min(L, (p[0] - w.a[0]) * ux + (p[1] - w.a[1]) * uz));
+    const s0 = Math.min(proj(o.p0), proj(o.p1)), s1 = Math.max(proj(o.p0), proj(o.p1));
+    const door = o.y0 - f < 0.2, y0 = door ? f : o.y0;
+    openings.push({ a: [r4(w.a[0] + ux * s0), r4(w.a[1] + uz * s0)], b: [r4(w.a[0] + ux * s1), r4(w.a[1] + uz * s1)], w: r4(s1 - s0),
+      h: r4(o.y1 - y0), sill: r4(y0 - f), y0: r4(y0), y1: r4(o.y1), kind: door ? 'door' : 'window', wall: bi });
+  }
+  const th = mainDir(poly), cs = Math.cos(th), sn = Math.sin(th);
+  const cx = poly.reduce((s, p) => s + p[0], 0) / n, cz = poly.reduce((s, p) => s + p[1], 0) / n;
+  const U = poly.map(p => (p[0] - cx) * cs + (p[1] - cz) * sn), Vv = poly.map(p => -(p[0] - cx) * sn + (p[1] - cz) * cs);
+  const frame = { th: r4(th), cx: r4(cx), cz: r4(cz), umin: r4(Math.min(...U)), umax: r4(Math.max(...U)), vmin: r4(Math.min(...Vv)), vmax: r4(Math.max(...Vv)) };
+  const L1 = frame.umax - frame.umin, L2 = frame.vmax - frame.vmin;
+  const area = polyArea(poly), opArea = openings.reduce((s, o) => s + o.w * o.h, 0);
+  return {
+    v: ROOMV, manual: true, floor: f, ceil: height ? f + height : null, height: height || null,
+    walls, openings, dims: { a: r4(Math.max(L1, L2)), b: r4(Math.min(L1, L2)) }, dimsExact: n === 4 && !!rp,
+    area: r4(area), perimeter: r4(perim), wallArea: height ? r4(perim * height - opArea) : null, volume: height ? r4(area * height) : null,
+    frame, raw: raw.map(p => p.map(r4)), ops: (ops || []).map(o => ({ p0: o.p0.map(r4), p1: o.p1.map(r4), y0: r4(o.y0), y1: r4(o.y1) })), rect: !!rp, canRect: can
+  };
+}
+
 /* ---------- Kamerabild auslesen (für Punktfarben) ---------- */
 class CamReader {
   constructor(gl) {
@@ -1023,12 +1133,15 @@ function drawRoomPlan(ctx, proj, room, y) {
   const labels = [];
   const fr = room.frame, cen = fr ? proj([fr.cx, y, fr.cz]) : null;
   const line = (a, b) => { ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); };
-  const place = (a, b, t, bg, out, dist) => {
+  ctx.font = '700 16px "Roboto Condensed", Roboto, Arial, sans-serif';
+  const place = (a, b, t, bg, out, gap) => {
     const L = Math.hypot(b[0] - a[0], b[1] - a[1]);
     if (L < 30) return;
     const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
     let nx = -(b[1] - a[1]) / L, ny = (b[0] - a[0]) / L;
     if (cen && (nx * (mx - cen[0]) + ny * (my - cen[1]) < 0) === out) { nx = -nx; ny = -ny; }
+    // Abstand so, dass das Schild die Linie nicht verdeckt (Breite bei senkrechten Wänden)
+    const dist = gap + Math.abs(nx) * (ctx.measureText(t).width + 14) / 2 + Math.abs(ny) * 13;
     labels.push({ x: mx + nx * dist, y: my + ny * dist, t, bg });
   };
   ctx.lineCap = 'round'; ctx.setLineDash([]);
@@ -1036,13 +1149,22 @@ function drawRoomPlan(ctx, proj, room, y) {
     const a = proj([w.a[0], y, w.a[1]]), b = proj([w.b[0], y, w.b[1]]);
     if (!a || !b) continue;
     ctx.strokeStyle = '#0A1511'; ctx.lineWidth = 5; line(a, b);
-    place(a, b, fmtLen(w.len), '#3F525E', true, 20);
+    place(a, b, fmtLen(w.len), '#3F525E', true, 8);
   }
   for (const o of room.openings) {
     const a = proj([o.a[0], y, o.a[1]]), b = proj([o.b[0], y, o.b[1]]);
     if (!a || !b) continue;
-    ctx.setLineDash([6, 5]); ctx.strokeStyle = '#BB1E10'; ctx.lineWidth = 3; line(a, b); ctx.setLineDash([]);
-    place(a, b, fmtLen(o.w), '#BB1E10', false, 20);
+    const win = o.kind === 'window', col = win ? '#1F6FB2' : '#BB1E10';
+    if (win) {
+      // Fenster wie im Bauplan: Wand ausgespart, zwei Linien
+      const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ox = -(b[1] - a[1]) / L * 3.5, oy = (b[0] - a[0]) / L * 3.5;
+      ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 9; ctx.lineCap = 'butt'; line(a, b);
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      line([a[0] + ox, a[1] + oy], [b[0] + ox, b[1] + oy]); line([a[0] - ox, a[1] - oy], [b[0] - ox, b[1] - oy]); line(a, b);
+      ctx.lineCap = 'round';
+    }
+    else { ctx.setLineDash([6, 5]); ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 7; line(a, b); ctx.strokeStyle = col; ctx.lineWidth = 3; line(a, b); ctx.setLineDash([]); }
+    place(a, b, (win ? 'Fenster ' : 'Tür ') + fmtLen(o.w), col, false, 8);
   }
   return labels;
 }
@@ -1074,6 +1196,9 @@ function drawLines(ctx, proj, lines, opts = {}) {
     for (let i = 0; i < sp.length; i++) if (sp[i] && !(ln.live && i === 1)) dot(sp[i]);
   }
   ctx.font = `700 ${16 * s}px "Roboto Condensed", Roboto, Arial, sans-serif`;
+  paintLabels(ctx, labels, s);
+}
+function paintLabels(ctx, labels, s) {
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const placed = [], hh = 26 * s;
   for (const L of labels) {
@@ -1170,7 +1295,7 @@ async function startAR(mode) {
     S.session = session;
     showArProblem(null);
     session.addEventListener('end', onArEnd);
-    session.addEventListener('select', () => { if (S.mode === 'measure') addArPoint(); });
+    session.addEventListener('select', () => { if (S.mode === 'measure') addArPoint(); else if (S.mode === 'room') roomMain(); });
     S.renderer.xr.setReferenceSpaceType('local');
     await S.renderer.xr.setSession(session);
     S.ref = S.renderer.xr.getReferenceSpace();
@@ -1182,6 +1307,10 @@ async function startAR(mode) {
     try { du = session.depthUsage; } catch {}
     S.depthOk = du === 'cpu-optimized';
     S.fusion = new Fusion();
+    if (mode === 'room' && !S.hitSrc && !S.depthOk) {
+      setArMode('measure');
+      toast('Dieses Gerät meldet keine Flächen. Raum erfassen geht hier nicht.');
+    }
     if (mode === 'scan' && !S.depthOk) {
       setArMode('measure');
       toast('Dieses Gerät liefert keine Tiefendaten. Scannen geht nicht, Messen schon.');
@@ -1200,6 +1329,7 @@ function arReset(mode) {
   S.camTry = !!S.camReader && !PARAMS.has('nocam'); S.camOk = false; S.camBlank = 0;
   S.lastInt = 0; S.lastUi = 0; S.tracking = false; S.everTracked = false; S.depthOk = false;
   S.prevT = 0; S.rotV = 0; S.movV = 0; S.fast = false;
+  rcReset();
   setArMode(mode);
   $('#arStatus').textContent = 'AR startet …';
   $('#arLive').hidden = true;
@@ -1212,7 +1342,8 @@ function onXRFrame(t, frame) {
   S.tracking = !!(pose && !pose.emulatedPosition);
   if (S.tracking) S.everTracked = true;
   if (pose) trackSpeed(t, pose.transform);
-  if (S.mode === 'measure') updateHit(frame, view);
+  if (S.mode === 'measure' || S.mode === 'room') updateHit(frame, view);
+  if (S.mode === 'room' && view && S.tracking) roomFrame(view);
   if (view && S.rec && S.tracking && S.depthOk && !S.fast && t - S.lastInt > 160) { S.lastInt = t; integrateFrame(frame, view); }
   S.preview.flush();
   S.renderer.render(S.scene, S.camera);
@@ -1234,10 +1365,13 @@ function trackSpeed(t, tr) {
 }
 
 function updateHit(frame, view) {
-  let p = null;
+  let p = null, nUp = null; // nUp: y-Anteil der Flächennormale (1 = waagrechte Fläche nach oben)
   if (S.hitSrc) {
     const r = frame.getHitTestResults(S.hitSrc);
-    if (r.length) { const hp = r[0].getPose(S.ref); if (hp) { const q = hp.transform.position; p = [q.x, q.y, q.z]; } }
+    if (r.length) {
+      const hp = r[0].getPose(S.ref);
+      if (hp) { const q = hp.transform.position, mm = hp.transform.matrix; p = [q.x, q.y, q.z]; nUp = mm ? mm[5] : null; }
+    }
   }
   if (!p && S.depthOk && view) {
     try {
@@ -1246,7 +1380,7 @@ function updateHit(frame, view) {
       if (d > 0.2 && d < 6) p = unprojector(di.projectionMatrix || view.projectionMatrix, (di.transform || view.transform).matrix)(0.5, 0.5, d, [0, 0, 0]);
     } catch {}
   }
-  S.hit = p;
+  S.hit = p; S.hitN = p ? nUp : null;
 }
 
 function integrateFrame(frame, view) {
@@ -1283,9 +1417,10 @@ function drawAr(view) {
   const open = cur && !cur.closed ? cur : null;
   let lv = null;
   if (S.mode === 'measure' && S.hit && open && open.pts.length) lv = { a: open.pts[open.pts.length - 1], b: S.hit };
+  drawRoomAR(ctx, makeClipProjector(view.projectionMatrix, view.transform.inverse.matrix, W, H), W, H);
   drawLines(ctx, proj, S.lines, { live: lv });
   if (S.mode === 'measure') drawReticle(ctx, S.hit ? proj(S.hit) : null, W, H);
-  let txt = '';
+  let txt = roomLiveText();
   if (lv) {
     const seg = dist3(lv.a, lv.b), tot = lineLen(open.pts) + seg;
     txt = fmtLen(seg) + (open.pts.length > 1 ? `|Total ${fmtLen(tot)}` : '');
@@ -1300,11 +1435,13 @@ function drawAr(view) {
 function setArMode(m) {
   S.mode = m;
   if (m !== 'scan') S.rec = false;
+  $('#arModeRoom').setAttribute('aria-pressed', String(m === 'room'));
   $('#arModeScan').setAttribute('aria-pressed', String(m === 'scan'));
   $('#arModeMeas').setAttribute('aria-pressed', String(m === 'measure'));
+  $('#arRoomRow').hidden = m !== 'room';
   $('#arScanRow').hidden = m !== 'scan';
   $('#arMeasRow').hidden = m !== 'measure';
-  if (m !== 'measure') $('#arLive').hidden = true;
+  if (m === 'scan') $('#arLive').hidden = true;
   updateArUi();
 }
 function lastOpenLine() { const l = S.lines[S.lines.length - 1]; return l && !l.closed ? l : null; }
@@ -1312,14 +1449,30 @@ function updateArUi() {
   const n = S.fusion ? S.fusion.n : 0;
   const done = S.lines.filter(l => l.pts.length >= 2).length;
   const st = $('#arStatus'); st.textContent = '';
-  st.append(S.mode === 'scan' ? (S.rec ? 'Aufnahme läuft' : 'Scannen') : 'Messen',
+  if (S.mode === 'room') {
+    const nc = RC.corners.length, info = [plural(nc, 'Ecke', 'Ecken')];
+    if (RC.closed) info.push(`${polyArea(RC.corners).toFixed(1)} m²`);
+    if (RC.height) info.push(`Höhe ${fmtLen(RC.height)}`);
+    if (RC.ops.length) info.push(plural(RC.ops.length, 'Öffnung', 'Öffnungen'));
+    st.append('Raum erfassen', h('small', null, info.join(' · ')));
+  } else st.append(S.mode === 'scan' ? (S.rec ? 'Aufnahme läuft' : 'Punktwolke') : 'Messen',
     h('small', null, `${plural(n, 'Punkt', 'Punkte')} · ${plural(done, 'Strecke', 'Strecken')}${S.mode === 'scan' && S.rec && !S.camOk ? ' · Farbe nach Höhe' : ''}`));
   const open = lastOpenLine();
   let hint = '';
   if (!S.session) hint = '';
   else if (!S.tracking) hint = S.everTracked ? 'Tracking verloren. Langsam zu einer bereits erfassten Stelle zurückschwenken.' : 'Umgebung wird erkannt … Handy langsam hin und her bewegen.';
-  else if (S.mode === 'scan') {
-    if (!S.depthOk) hint = 'Keine Tiefendaten auf diesem Gerät. Wechsle zu «Messen».';
+  else if (S.mode === 'room') {
+    const nc = RC.corners.length;
+    if (RC.step === 'floor') hint = S.hitSrc || S.depthOk ? 'Handy auf den Boden richten und langsam hin und her bewegen, bis der Boden erkannt ist.' : 'Dieses Gerät meldet keine Flächen. Raum erfassen ist hier nicht möglich.';
+    else if (RC.step === 'corners') {
+      if (!RC.aim) hint = 'Handy etwas mehr nach unten neigen, auf den Boden.';
+      else if (RC.snap === 'close') hint = 'Erste Ecke erreicht: tippen, um den Raum zu schliessen.';
+      else if (!nc) hint = 'Fadenkreuz genau in eine Bodenecke richten (wo zwei Wände auf den Boden treffen) und «+ Ecke» tippen.';
+      else hint = 'Reihum die nächste Bodenecke anpeilen und tippen. Zurück an der ersten Ecke schliesst sich der Raum.';
+    } else if (RC.step === 'height') hint = 'Raumhöhe: Fadenkreuz auf die Kante zwischen Wand und Decke richten und «Höhe setzen» tippen.';
+    else hint = RC.opA ? 'Jetzt die gegenüberliegende Ecke der Tür oder des Fensters antippen.' : 'Optional Türen und Fenster: untere Ecke und gegenüberliegende obere Ecke antippen. Sonst «Fertig».';
+  } else if (S.mode === 'scan') {
+    if (!S.depthOk) hint = 'Keine Tiefendaten auf diesem Gerät. Wechsle zu «Raum» oder «Messen».';
     else if (S.full) hint = 'Speicher voll. Mit «Fertig» speichern.';
     else if (S.rec && S.fast) hint = 'Langsamer bewegen. Bei schneller Bewegung wird nichts aufgenommen.';
     else if (S.rec) hint = 'Langsam alle Wände abfahren, 1 bis 2,5 m Abstand. Dazu Boden, Ecken und Decke.';
@@ -1338,6 +1491,13 @@ function updateArUi() {
   $('#arUndo').disabled = !S.lines.some(l => l.pts.length);
   $('#arNewLine').disabled = !(open && open.pts.length >= 2);
   $('#arPoint').disabled = !S.hit;
+  // Raum-Knöpfe je nach Schritt
+  const main = $('#arRMain'), next = $('#arRNext'), undo = $('#arRUndo');
+  const nc = RC.corners.length;
+  if (RC.step === 'floor') { main.textContent = 'Boden suchen …'; main.disabled = true; next.textContent = 'Raum schliessen'; next.disabled = true; undo.disabled = true; }
+  else if (RC.step === 'corners') { main.textContent = RC.snap === 'close' ? 'Schliessen' : '+ Ecke'; main.disabled = !RC.aim; next.textContent = 'Raum schliessen'; next.disabled = nc < 3; undo.disabled = !nc; }
+  else if (RC.step === 'height') { main.textContent = 'Höhe setzen'; main.disabled = !RC.wallAim; next.textContent = 'Überspringen'; next.disabled = false; undo.disabled = false; }
+  else { main.textContent = RC.opA ? 'Zweite Ecke' : '+ Öffnung'; main.disabled = !RC.wallAim; next.textContent = 'Fertig'; next.disabled = false; undo.disabled = false; }
 }
 function addArPoint() {
   if (!S.session) return;
@@ -1349,7 +1509,235 @@ function addArPoint() {
   updateArUi();
 }
 
+/* ---------- Raum erfassen: Boden finden, Bodenecken antippen, Höhe, Öffnungen ---------- */
+// Der Boden kommt aus der ARCore-Flächenerkennung (sehr zuverlässig). Jede Ecke ist dann der Schnittpunkt
+// des Blickstrahls mit der Bodenebene; Höhe und Öffnungen sind Schnittpunkte mit den bekannten Wandebenen.
+const RC = {};
+function rcReset() {
+  Object.assign(RC, { step: 'floor', hits: [], floorY: null, corners: [], closed: false, height: null, ops: [], opA: null, aim: null, snap: '', wallAim: null });
+}
+rcReset();
+function viewRay(view) {
+  const m = view.transform.matrix;
+  return { O: [m[12], m[13], m[14]], D: [-m[8], -m[9], -m[10]] };
+}
+function wallRay(O, D, poly, f, top) {
+  let best = null;
+  const n = poly.length;
+  for (let i = 0; i < n; i++) {
+    const a = poly[i], b = poly[(i + 1) % n], ex = b[0] - a[0], ez = b[1] - a[1], L = Math.hypot(ex, ez);
+    if (L < 0.05) continue;
+    const ux = ex / L, uz = ez / L, nx = -uz, nz = ux, den = D[0] * nx + D[2] * nz;
+    if (Math.abs(den) < 1e-4) continue;
+    const t = ((a[0] - O[0]) * nx + (a[1] - O[2]) * nz) / den;
+    if (t < 0.2 || t > 15) continue;
+    const px = O[0] + t * D[0], py = O[1] + t * D[1], pz = O[2] + t * D[2];
+    const sAlong = (px - a[0]) * ux + (pz - a[1]) * uz;
+    if (sAlong < -0.05 || sAlong > L + 0.05 || py < f - 0.1 || py > top) continue;
+    if (!best || t < best.t) best = { t, i, s: Math.max(0, Math.min(L, sAlong)), y: py, p: [px, py, pz] };
+  }
+  return best;
+}
+function wallPoint(poly, i, sAlong) {
+  const a = poly[i], b = poly[(i + 1) % poly.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+  return [a[0] + (b[0] - a[0]) / L * sAlong, a[1] + (b[1] - a[1]) / L * sAlong];
+}
+function roomFrame(view) {
+  const { O, D } = viewRay(view);
+  RC.aim = null; RC.snap = ''; RC.wallAim = null;
+  if (RC.step === 'floor') {
+    // Bodenpunkte sammeln: Treffer auf waagrechter Fläche deutlich unter dem Handy
+    const up = S.hitN != null ? S.hitN > 0.9 : D[1] < -0.5;
+    if (S.hit && up && S.hit[1] < O[1] - 0.4) {
+      RC.hits.push(S.hit[1]);
+      if (RC.hits.length > 40) RC.hits.shift();
+      if (RC.hits.length >= 10) {
+        const ys = RC.hits.slice().sort((p, q) => p - q), med = ys[ys.length >> 1];
+        const mad = ys.map(y => Math.abs(y - med)).sort((p, q) => p - q)[ys.length >> 1];
+        if (mad < 0.015) {
+          RC.floorY = med; RC.step = 'corners';
+          toast('Boden erkannt. Jetzt die erste Ecke anpeilen.');
+          try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch {}
+        }
+      }
+    }
+    return;
+  }
+  if (RC.step === 'corners') {
+    if (D[1] > -0.05) return;
+    const t = (RC.floorY - O[1]) / D[1];
+    if (t <= 0 || t > 12) return;
+    let p = [O[0] + t * D[0], O[2] + t * D[2]];
+    const c = RC.corners, n = c.length;
+    if (n >= 3 && Math.hypot(p[0] - c[0][0], p[1] - c[0][1]) < 0.2) { p = c[0].slice(); RC.snap = 'close'; }
+    else if (n >= 2) {
+      // Winkelhilfe: fast rechtwinklig -> genau 90°
+      const a = c[n - 2], b = c[n - 1], e1x = b[0] - a[0], e1z = b[1] - a[1], L1 = Math.hypot(e1x, e1z);
+      const e2x = p[0] - b[0], e2z = p[1] - b[1], L2 = Math.hypot(e2x, e2z);
+      if (L1 > 0.1 && L2 > 0.15 && Math.abs((e1x * e2x + e1z * e2z) / (L1 * L2)) < 0.105) {
+        const px = -e1z / L1, pz = e1x / L1, sp = px * e2x + pz * e2z;
+        p = [b[0] + px * sp, b[1] + pz * sp]; RC.snap = '90';
+      }
+    }
+    RC.aim = p;
+    return;
+  }
+  const top = RC.step === 'height' ? RC.floorY + 8 : RC.floorY + (RC.height || 2.6) + 0.15;
+  RC.wallAim = wallRay(O, D, RC.corners, RC.floorY, top);
+}
+function roomMain() {
+  if (!S.session) return;
+  const buzz = () => { try { navigator.vibrate && navigator.vibrate(12); } catch {} };
+  if (RC.step === 'floor') { toast('Erst den Boden erkennen: Handy auf den Boden richten und langsam bewegen.'); return; }
+  if (RC.step === 'corners') {
+    if (!RC.aim) { toast('Kein Bodenpunkt. Handy etwas mehr nach unten neigen.'); return; }
+    if (RC.snap === 'close') { roomClose(); return; }
+    const last = RC.corners[RC.corners.length - 1];
+    if (last && Math.hypot(RC.aim[0] - last[0], RC.aim[1] - last[1]) < 0.1) { toast('Zu nah an der letzten Ecke.'); return; }
+    RC.corners.push(RC.aim.slice()); buzz();
+  } else if (RC.step === 'height') {
+    const w = RC.wallAim, hgt = w ? w.y - RC.floorY : 0;
+    if (!w || hgt < 1.5 || hgt > 8) { toast('Fadenkreuz auf die Kante zwischen Wand und Decke richten.'); return; }
+    RC.height = Math.round(hgt * 1000) / 1000; RC.step = 'openings'; buzz();
+    toast(`Raumhöhe ${fmtLen(RC.height)}`);
+  } else if (RC.step === 'openings') {
+    const w = RC.wallAim;
+    if (!w) { toast('Keine Wand im Fadenkreuz.'); return; }
+    if (!RC.opA) { RC.opA = { i: w.i, s: w.s, y: w.y }; buzz(); }
+    else if (w.i !== RC.opA.i) toast('Beide Ecken auf derselben Wand antippen.');
+    else {
+      const a = RC.opA, s0 = Math.min(a.s, w.s), s1 = Math.max(a.s, w.s), y0 = Math.min(a.y, w.y), y1 = Math.max(a.y, w.y);
+      if (s1 - s0 < 0.2 || y1 - y0 < 0.2) { toast('Öffnung zu klein. Gegenüberliegende Ecken antippen.'); return; }
+      RC.ops.push({ p0: wallPoint(RC.corners, a.i, s0), p1: wallPoint(RC.corners, a.i, s1), y0, y1 });
+      RC.opA = null; buzz();
+      toast(`${y0 - RC.floorY < 0.2 ? 'Tür' : 'Fenster'} ${fmtLen(s1 - s0)} breit`);
+    }
+  }
+  updateArUi();
+}
+function roomClose() {
+  if (RC.corners.length < 3) { toast('Mindestens drei Ecken setzen.'); return; }
+  RC.closed = true; RC.step = 'height';
+  try { navigator.vibrate && navigator.vibrate([20, 40, 20]); } catch {}
+  toast('Raum geschlossen. Jetzt die Raumhöhe.');
+  updateArUi();
+}
+function roomNext() {
+  if (RC.step === 'corners') roomClose();
+  else if (RC.step === 'height') { RC.step = 'openings'; updateArUi(); }
+  else if (RC.step === 'openings' && S.session) S.session.end().catch(() => onArEnd());
+}
+function roomUndo() {
+  if (RC.step === 'corners') RC.corners.pop();
+  else if (RC.step === 'height') { RC.closed = false; RC.step = 'corners'; }
+  else if (RC.step === 'openings') {
+    if (RC.opA) RC.opA = null;
+    else if (RC.ops.length) RC.ops.pop();
+    else { RC.height = null; RC.step = 'height'; }
+  }
+  updateArUi();
+}
+// Projektion mit Abschneiden an der Nahebene (Wände hinter der Kamera korrekt zeichnen)
+const lerp4 = (A, B, t) => A.map((v, k) => v + (B[k] - v) * t);
+function makeClipProjector(P, Vinv, W, H) {
+  _PV.fromArray(P).multiply(_VI.fromArray(Vinv));
+  const e = _PV.elements.slice(), EPS = 0.02;
+  const clip = p => [e[0] * p[0] + e[4] * p[1] + e[8] * p[2] + e[12], e[1] * p[0] + e[5] * p[1] + e[9] * p[2] + e[13], 0, e[3] * p[0] + e[7] * p[1] + e[11] * p[2] + e[15]];
+  const scr = c => [(c[0] / c[3] + 1) / 2 * W, (1 - c[1] / c[3]) / 2 * H];
+  return {
+    pt: p => { const c = clip(p); return c[3] > EPS ? scr(c) : null; },
+    seg: (a, b) => {
+      let A = clip(a), B = clip(b);
+      if (A[3] <= EPS && B[3] <= EPS) return null;
+      if (A[3] <= EPS) A = lerp4(A, B, (EPS - A[3]) / (B[3] - A[3]));
+      else if (B[3] <= EPS) B = lerp4(B, A, (EPS - B[3]) / (A[3] - B[3]));
+      return [scr(A), scr(B)];
+    },
+    poly: pts => {
+      const cs = pts.map(clip), out = [];
+      for (let i = 0; i < cs.length; i++) {
+        const A = cs[i], B = cs[(i + 1) % cs.length], ia = A[3] > EPS, ib = B[3] > EPS;
+        if (ia) out.push(A);
+        if (ia !== ib) out.push(lerp4(A, B, (EPS - A[3]) / (B[3] - A[3])));
+      }
+      return out.length >= 3 ? out.map(scr) : null;
+    }
+  };
+}
+function drawRoomAR(ctx, cp, W, H) {
+  const f = RC.floorY;
+  if (f == null) { if (S.mode === 'room') drawReticle(ctx, S.hit ? cp.pt(S.hit) : null, W, H); return; }
+  const top = f + (RC.height || 2.5), n = RC.corners.length, labels = [];
+  const c = RC.corners.map(p => [p[0], f, p[1]]), up = p => [p[0], top, p[2]];
+  const strokeSeg = (sg, color, w, dash) => {
+    if (!sg) return;
+    ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = w;
+    ctx.beginPath(); ctx.moveTo(sg[0][0], sg[0][1]); ctx.lineTo(sg[1][0], sg[1][1]); ctx.stroke(); ctx.setLineDash([]);
+  };
+  const fillPoly = (pg, color) => { if (!pg) return; ctx.fillStyle = color; ctx.beginPath(); pg.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.closePath(); ctx.fill(); };
+  const edges = [];
+  for (let i = 0; i + 1 < n; i++) edges.push([c[i], c[i + 1]]);
+  if (RC.closed && n >= 3) edges.push([c[n - 1], c[0]]);
+  const live = RC.step === 'corners' && RC.aim && n ? [c[n - 1], [RC.aim[0], f, RC.aim[1]]] : null;
+  ctx.lineCap = 'round';
+  if (RC.closed) fillPoly(cp.poly(c), 'rgba(113,169,52,.18)');
+  for (const [a, b] of edges) fillPoly(cp.poly([a, b, up(b), up(a)]), 'rgba(255,255,255,.13)');
+  if (live) fillPoly(cp.poly([live[0], live[1], up(live[1]), up(live[0])]), 'rgba(255,255,255,.08)');
+  for (const p of c) { strokeSeg(cp.seg(p, up(p)), 'rgba(0,0,0,.45)', 5); strokeSeg(cp.seg(p, up(p)), '#A6D873', 2.5); }
+  for (const [a, b] of edges) {
+    strokeSeg(cp.seg(up(a), up(b)), '#A6D873', 2.5);
+    const sg = cp.seg(a, b);
+    strokeSeg(sg, 'rgba(0,0,0,.5)', 8); strokeSeg(sg, '#71A934', 5);
+    if (sg && Math.hypot(sg[1][0] - sg[0][0], sg[1][1] - sg[0][1]) > 40) labels.push({ x: (sg[0][0] + sg[1][0]) / 2, y: (sg[0][1] + sg[1][1]) / 2, t: fmtLen(dist3(a, b)) });
+  }
+  if (live) {
+    const sg = cp.seg(live[0], live[1]);
+    strokeSeg(sg, 'rgba(0,0,0,.5)', 7, [10, 8]); strokeSeg(sg, RC.snap === '90' ? '#A6D873' : '#FFFFFF', 4, [10, 8]);
+    if (sg) labels.push({ x: (sg[0][0] + sg[1][0]) / 2, y: (sg[0][1] + sg[1][1]) / 2, t: fmtLen(dist3(live[0], live[1])) + (RC.snap === '90' ? ' · 90°' : ''), live: true });
+  }
+  for (const p of c) { const q = cp.pt(p); if (q) { ctx.fillStyle = '#FFFFFF'; ctx.strokeStyle = '#066A50'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(q[0], q[1], 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
+  // Öffnungen als Rechtecke auf der Wand
+  const rect = (p0, p1, y0, y1) => [[p0[0], y0, p0[1]], [p1[0], y0, p1[1]], [p1[0], y1, p1[1]], [p0[0], y1, p0[1]]];
+  const outline = (pts, color, dash) => { for (let i = 0; i < 4; i++) { const sg = cp.seg(pts[i], pts[(i + 1) % 4]); strokeSeg(sg, 'rgba(0,0,0,.45)', 6, dash); strokeSeg(sg, color, 3.5, dash); } };
+  for (const o of RC.ops) outline(rect(o.p0, o.p1, o.y0 - f < 0.2 ? f : o.y0, o.y1), o.y0 - f < 0.2 ? '#FF6B5B' : '#6FB6FF');
+  if (RC.step === 'openings' && RC.opA && RC.wallAim && RC.wallAim.i === RC.opA.i) {
+    const s0 = Math.min(RC.opA.s, RC.wallAim.s), s1 = Math.max(RC.opA.s, RC.wallAim.s);
+    outline(rect(wallPoint(RC.corners, RC.opA.i, s0), wallPoint(RC.corners, RC.opA.i, s1), Math.min(RC.opA.y, RC.wallAim.y), Math.max(RC.opA.y, RC.wallAim.y)), '#FFFFFF', [8, 6]);
+  }
+  if (S.mode === 'room') {
+    if (RC.step === 'corners') {
+      const q = RC.aim ? cp.pt([RC.aim[0], f, RC.aim[1]]) : null;
+      drawReticle(ctx, q, W, H);
+      if (q && RC.snap === 'close') { ctx.strokeStyle = '#FFD54F'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(q[0], q[1], 24, 0, Math.PI * 2); ctx.stroke(); }
+    } else if (RC.step === 'height' || RC.step === 'openings') {
+      const w = RC.wallAim;
+      drawReticle(ctx, w ? cp.pt(w.p) : null, W, H);
+      if (w && RC.step === 'height') {
+        const a = wallPoint(RC.corners, w.i, Math.max(0, w.s - 0.6)), b = wallPoint(RC.corners, w.i, w.s + 0.6);
+        strokeSeg(cp.seg([a[0], w.y, a[1]], [b[0], w.y, b[1]]), '#FFD54F', 3, [8, 6]);
+      }
+    }
+  }
+  ctx.font = '700 16px "Roboto Condensed", Roboto, Arial, sans-serif';
+  paintLabels(ctx, labels, 1);
+}
+function roomLiveText() {
+  if (S.mode !== 'room') return '';
+  if (RC.step === 'corners' && RC.aim && RC.corners.length) {
+    const b = RC.corners[RC.corners.length - 1];
+    return fmtLen(Math.hypot(RC.aim[0] - b[0], RC.aim[1] - b[1])) + (RC.snap === '90' ? '|90° eingerastet' : RC.snap === 'close' ? '|Tippen: Raum schliessen' : '');
+  }
+  if (RC.step === 'height' && RC.wallAim) return `Höhe ${fmtLen(RC.wallAim.y - RC.floorY)}`;
+  if (RC.step === 'openings' && RC.opA && RC.wallAim && RC.wallAim.i === RC.opA.i)
+    return `${fmtLen(Math.abs(RC.wallAim.s - RC.opA.s))} × ${fmtLen(Math.abs(RC.wallAim.y - RC.opA.y))}`;
+  return '';
+}
+
 $('#arUi').addEventListener('beforexrselect', e => { if (e.target.closest && e.target.closest('button')) e.preventDefault(); });
+$('#arModeRoom').addEventListener('click', () => setArMode('room'));
+$('#arRMain').addEventListener('click', roomMain);
+$('#arRNext').addEventListener('click', roomNext);
+$('#arRUndo').addEventListener('click', roomUndo);
 $('#arModeScan').addEventListener('click', () => setArMode('scan'));
 $('#arModeMeas').addEventListener('click', () => setArMode('measure'));
 $('#arRec').addEventListener('click', () => { if (!S.depthOk || S.full) return; S.rec = !S.rec; updateArUi(); });
@@ -1395,14 +1783,19 @@ async function onArEnd() {
   $('#arUi').hidden = true;
   if (toastEl.parentNode === $('#arUi')) hideToast();
   const measures = S.lines.filter(l => l.pts.length >= 2).map(l => ({ id: uid(), pts: l.pts.map(p => p.map(v => Math.round(v * 10000) / 10000)) }));
+  let room = null;
+  if (RC.floorY != null && RC.corners.length >= 3) room = roomFromPolygon(RC.corners.map(c => c.slice()), RC.floorY, RC.height, RC.ops.slice(), true);
+  else if (RC.floorY != null && RC.corners.length === 2) measures.push({ id: uid(), pts: RC.corners.map(c => [c[0], RC.floorY, c[1]]) });
+  rcReset();
   const fusion = S.fusion;
   S.fusion = null; S.lines = [];
   if (fusion && fusion.n) { toast('Scan wird aufbereitet …'); await new Promise(r => setTimeout(r, 60)); }
   const res = fusion && fusion.n ? fusion.finalize() : { n: 0, pos: null, col: null, floorY: null, colored: false };
   hideToast();
-  if (!res.n && !measures.length) { toast('Nichts aufgenommen.'); return; }
+  if (!res.n && !measures.length && !room) { toast('Nichts aufgenommen.'); return; }
+  if (room) res.floorY = room.floor;
   if (res.floorY == null) res.floorY = Math.min(...measures.flatMap(m => m.pts.map(p => p[1])));
-  res.measures = measures;
+  res.measures = measures; res.room = room;
   openSaveDialog(res);
 }
 
@@ -1411,10 +1804,13 @@ const saveDlg = $('#saveDlg');
 function openSaveDialog(res) {
   pendingResult = res;
   const now = Date.now();
-  $('#svTitle').textContent = res.n ? 'Scan speichern' : 'Messung speichern';
-  res.defaultName = `${res.n ? 'Scan' : 'Messung'} ${fmtDT(now)}`;
+  const kind = res.room ? 'Raum' : res.n ? 'Scan' : 'Messung';
+  $('#svTitle').textContent = `${kind} speichern`;
+  res.defaultName = `${kind} ${fmtDT(now)}`;
   $('#svName').value = res.defaultName;
-  $('#svSum').textContent = [res.n ? plural(res.n, 'Punkt', 'Punkte') : null, plural(res.measures.length, 'Strecke', 'Strecken'),
+  const r = res.room;
+  $('#svSum').textContent = [r ? `${r.area.toFixed(1)} m² · ${plural(r.walls.length, 'Wand', 'Wände')}${r.height ? ` · Höhe ${fmtLen(r.height)}` : ''}` : null,
+    res.n ? plural(res.n, 'Punkt', 'Punkte') : null, res.measures.length || !r ? plural(res.measures.length, 'Strecke', 'Strecken') : null,
     res.n ? (res.colored ? 'mit Kamerafarben' : 'Farbe nach Höhe') : null].filter(Boolean).join(' · ');
   $('#svConfirm').hidden = true; $('#svRow').hidden = false;
   saveDlg.showModal();
@@ -1432,7 +1828,9 @@ async function commitSave() {
   const id = uid();
   if (res.n) await storePoints(id, { pos: res.pos, col: res.col });
   scans.filter(s => s.example).forEach(deleteScanData);
-  scans.push({ id, name, created: Date.now(), n: res.n, colored: res.colored, floorY: res.floorY, measures: res.measures });
+  const meta = { id, name, created: Date.now(), n: res.n, colored: res.colored, floorY: res.floorY, measures: res.measures };
+  if (res.room) meta.room = res.room;
+  scans.push(meta);
   await saveIndex();
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch {}
   navigate({ name: 'viewer', id });
@@ -1584,7 +1982,7 @@ async function openViewer(id) {
   const d = s.n ? await loadPoints(s) : null;
   if (my !== V.token) return;
   if (s.n && !d) { msg.textContent = 'Die Punktdaten dieses Scans fehlen auf diesem Gerät.'; V.loadedId = null; return; }
-  if (d && (!s.room || s.room.v !== ROOMV)) {
+  if (d && (!s.room || (!s.room.manual && s.room.v !== ROOMV))) {
     msg.textContent = ''; msg.append(h('div', null, h('div', { class: 'spinner' }), 'Raum wird erkannt …'));
     await new Promise(r => setTimeout(r, 30));
     if (my !== V.token) return;
@@ -1610,7 +2008,7 @@ async function openViewer(id) {
     V.pts = new THREE.Points(V.geo, V.mode === 'plan' ? V.matPlan : V.mat);
     V.scene.add(V.pts);
   }
-  V.box = robustBox(d && d.pos, s.measures.flatMap(m => m.pts));
+  V.box = robustBox(d && d.pos, [...s.measures.flatMap(m => m.pts), ...roomPts(s.room)]);
   const c = V.box.getCenter(new THREE.Vector3()), sz = V.box.getSize(new THREE.Vector3());
   const gs = 2 * Math.ceil((Math.max(sz.x, sz.z) + 4) / 2);
   V.grid = makeGrid(gs, 0x3B5C50, 0x22392F, V.floorY, c.x, c.z);
@@ -1624,7 +2022,7 @@ async function openViewer(id) {
   applyMode();
   resetCamera();
   resizeViewer();
-  if (d && !thumbURL.has(id)) setTimeout(() => makeThumb(s), 400);
+  if ((d || (s.room && s.room.manual)) && !thumbURL.has(id)) setTimeout(() => makeThumb(s), 400);
 }
 function resetCamera() {
   if (!V.box) return;
@@ -1683,6 +2081,25 @@ function buildRoom3D(room) {
   eg.setAttribute('position', new THREE.Float32BufferAttribute(edges, 3));
   const lines = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color: 0x8FD14F }));
   const grp = new THREE.Group(); grp.add(mesh, lines);
+  if (room.manual) {
+    // Bodenfläche
+    const contour = room.walls.map(w => new THREE.Vector2(w.a[0], w.a[1]));
+    const tris = THREE.ShapeUtils.triangulateShape(contour, []);
+    const fp = [], fi = [];
+    for (const v of contour) fp.push(v.x, f + 0.002, v.y);
+    for (const t of tris) fi.push(t[0], t[1], t[2]);
+    const fg = new THREE.BufferGeometry();
+    fg.setAttribute('position', new THREE.Float32BufferAttribute(fp, 3)); fg.setIndex(fi);
+    grp.add(new THREE.Mesh(fg, new THREE.MeshBasicMaterial({ color: 0x71A934, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false })));
+    // Türen und Fenster als Rahmen
+    for (const o of room.openings) {
+      if (o.y0 == null) continue;
+      const q = [[o.a[0], o.y0, o.a[1]], [o.b[0], o.y0, o.b[1]], [o.b[0], o.y1, o.b[1]], [o.a[0], o.y1, o.a[1]]], ep = [];
+      for (let k = 0; k < 4; k++) ep.push(...q[k], ...q[(k + 1) % 4]);
+      const og = new THREE.BufferGeometry(); og.setAttribute('position', new THREE.Float32BufferAttribute(ep, 3));
+      grp.add(new THREE.LineSegments(og, new THREE.LineBasicMaterial({ color: o.kind === 'window' ? 0x6FB6FF : 0xFF6B5B })));
+    }
+  }
   grp.visible = V.mode !== 'plan' && V.showRoom;
   V.roomObj = grp; V.scene.add(grp);
 }
@@ -1694,12 +2111,31 @@ function updateRoomVis() {
   $('#vRoom').setAttribute('aria-pressed', String(V.showRoom));
   requestRender();
 }
+function roomPts(r) {
+  if (!r || !r.walls) return [];
+  const top = r.ceil != null ? r.ceil : r.floor + 2.5;
+  return r.walls.flatMap(w => [[w.a[0], r.floor, w.a[1]], [w.a[0], top, w.a[1]]]);
+}
 function renderRoomCard() {
   const s = V.scan, card = $('#roomCard');
-  if (!s || !s.n) { card.hidden = true; return; }
+  $('#roomRectRow').hidden = true;
+  if (!s || (!s.n && !(s.room && s.room.manual))) { card.hidden = true; return; }
   card.hidden = false;
   const r = s.room, dims = $('#roomDims'), meta = $('#roomMeta'), note = $('#roomNote');
   dims.textContent = ''; meta.textContent = ''; note.textContent = '';
+  if (r && r.manual) {
+    $('#roomSub').textContent = 'aus Bodenecken erfasst';
+    dims.textContent = `${r.dimsExact ? '' : 'ca. '}${fmtLen(r.dims.a)} × ${fmtLen(r.dims.b)}` + (r.height ? ` · Höhe ${fmtLen(r.height)}` : '');
+    const row = t => meta.append(h('div', null, t));
+    row(`Fläche ${r.area.toFixed(2)} m² · Umfang ${fmtLen(r.perimeter)}` + (r.height ? ` · Volumen ${r.volume.toFixed(1)} m³` : ''));
+    if (r.height) row(`Wandfläche ${r.wallArea.toFixed(1)} m² (ohne Türen und Fenster)`);
+    row(`${plural(r.walls.length, 'Wand', 'Wände')}: ${r.walls.map(w => fmtLen(w.len)).join(', ')}`);
+    for (const o of r.openings) row(o.kind === 'window' ? `Fenster ${fmtLen(o.w)} × ${fmtLen(o.h)}, Brüstung ${fmtLen(o.sill)}` : `Tür ${fmtLen(o.w)} × ${fmtLen(o.h)}`);
+    $('#roomRectRow').hidden = !r.canRect;
+    $('#roomRect').checked = !!r.rect;
+    note.textContent = (r.height ? '' : 'Raumhöhe nicht gemessen: unter «Scan bearbeiten» eintragen. ') + 'Genauigkeit je Ecke etwa ±1 bis 3 cm. Für verbindliche Masse nachmessen.';
+    return;
+  }
   if (!r || r.walls.length < 2) {
     $('#roomSub').textContent = 'nicht erkannt';
     dims.textContent = r && r.height ? `Höhe ${fmtLen(r.height)}` : 'Keine Wände erkannt';
@@ -1729,13 +2165,13 @@ function updateStageHint() {
   const hint = $('#stageHint');
   let t = '';
   if (V.measuring) t = V.pending ? 'Zweiten Punkt antippen.' : (V.mode === 'plan' ? 'Zwei Punkte antippen. Gemessen wird waagrecht.' : 'Zwei Punkte der Punktwolke antippen.');
-  else if (V.scan && !V.scan.n) t = 'Nur Messungen, keine Punktwolke.';
+  else if (V.scan && !V.scan.n && !V.scan.room) t = 'Nur Messungen, keine Punktwolke.';
   hint.textContent = t; hint.hidden = !t;
 }
 function snapEndpoint(sx, sy) {
   const proj = viewerProjector(activeCam());
   let best = null, bd = 22;
-  for (const m of V.scan.measures) for (const p of m.pts) {
+  for (const m of [...V.scan.measures, { pts: roomPts(V.scan.room) }]) for (const p of m.pts) {
     const q = proj(p); if (!q) continue;
     const d = Math.hypot(q[0] - sx, q[1] - sy);
     if (d < bd) { bd = d; best = p.slice(); }
@@ -1814,7 +2250,9 @@ function removeMeasure(m) {
 function renderScanEdit() {
   const s = V.scan;
   if (document.activeElement !== $('#sName')) $('#sName').value = s.name;
-  $('#scanEditMeta').textContent = 'Name, löschen';
+  $('#sHeightRow').hidden = !s.room;
+  if (s.room && document.activeElement !== $('#sHeight')) $('#sHeight').value = s.room.height ? s.room.height.toFixed(2) : '';
+  $('#scanEditMeta').textContent = s.room ? 'Name, Raumhöhe, löschen' : 'Name, löschen';
   $('#sDelConfirm').hidden = true; $('#sDel').hidden = false;
 }
 
@@ -1908,9 +2346,9 @@ function dxfBlob(s, d) {
       text('WANDMASSE', 7, [mx + dx / L * 0.18, my + dy / L * 0.18], fmtLen(w.len));
     });
     for (const o of r.openings) {
-      line('OEFFNUNGEN', 1, o.a, o.b);
+      line(o.kind === 'window' ? 'FENSTER' : 'TUEREN', o.kind === 'window' ? 5 : 1, o.a, o.b);
       const [x1, y1] = T(o.a[0], o.a[1]), [x2, y2] = T(o.b[0], o.b[1]);
-      text('OEFFNUNGEN', 1, [(x1 + x2) / 2, (y1 + y2) / 2 + 0.15], `Oeffnung ${fmtLen(o.w)}`);
+      text(o.kind === 'window' ? 'FENSTER' : 'TUEREN', o.kind === 'window' ? 5 : 1, [(x1 + x2) / 2, (y1 + y2) / 2 + 0.15], o.kind === 'window' ? `Fenster ${fmtLen(o.w)} x ${fmtLen(o.h)}, BR ${fmtLen(o.sill)}` : o.h ? `Tuer ${fmtLen(o.w)} x ${fmtLen(o.h)}` : `Oeffnung ${fmtLen(o.w)}`);
     }
   }
   for (const m of s.measures) {
@@ -1927,7 +2365,7 @@ function dxfBlob(s, d) {
 $('#btnDxf').addEventListener('click', async () => {
   const s = V.scan; if (!s) return;
   const d = s.n ? await loadPoints(s) : null;
-  if (!d && !s.measures.length) { toast('Keine Daten für einen Grundriss.'); return; }
+  if (!d && !s.measures.length && !s.room) { toast('Keine Daten für einen Grundriss.'); return; }
   download(dxfBlob(s, d), `${slug(s.name)}_Grundriss.dxf`);
   const nw = s.room ? s.room.walls.length : 0;
   toast(nw ? `DXF mit ${plural(nw, 'Wand', 'Wänden')} gespeichert` : 'DXF gespeichert (keine Wände erkannt)');
@@ -1952,6 +2390,24 @@ $('#vmPlan').addEventListener('click', () => { if (V.mode !== 'plan') { V.mode =
 $('#ptBig').addEventListener('click', () => { V.mat.size = Math.min(0.08, V.mat.size * 1.35); V.matPlan.size = Math.min(8, V.matPlan.size + 0.75); requestRender(); });
 $('#ptSmall').addEventListener('click', () => { V.mat.size = Math.max(0.004, V.mat.size / 1.35); V.matPlan.size = Math.max(1, V.matPlan.size - 0.75); requestRender(); });
 $('#vReset').addEventListener('click', resetCamera);
+function updateRoom(s, room) {
+  s.room = room;
+  if (V.scan === s) { buildRoom3D(room); renderRoomCard(); renderTop(); updateRoomVis(); renderViewer(); }
+  saveIndex();
+  thumbURL.delete(s.id);
+}
+$('#sHeight').addEventListener('change', () => {
+  const s = V.scan, r = s && s.room; if (!r) return;
+  const v = parseFloat($('#sHeight').value.replace(',', '.'));
+  if (!(v >= 1.5 && v <= 10)) { toast('Raumhöhe zwischen 1.50 und 10 m eingeben.'); return; }
+  if (r.manual) updateRoom(s, roomFromPolygon(r.raw, r.floor, v, r.ops, r.rect));
+  else updateRoom(s, { ...r, height: v, ceil: r.floor + v });
+  toast(`Raumhöhe ${fmtLen(v)}`);
+});
+$('#roomRect').addEventListener('change', () => {
+  const s = V.scan, r = s && s.room; if (!r || !r.manual) return;
+  updateRoom(s, roomFromPolygon(r.raw, r.floor, r.height, r.ops, $('#roomRect').checked));
+});
 $('#sName').addEventListener('input', () => { if (!V.scan) return; V.scan.name = $('#sName').value; renderTop(); saveIndex(); });
 $('#sDel').addEventListener('click', () => {
   $('#sDelText').textContent = `«${V.scan.name}» mit ${plural(V.scan.measures.length, 'Strecke', 'Strecken')} löschen?`;
@@ -1984,7 +2440,7 @@ function renderHome() {
   for (const s of ss) {
     const th = h('span', { class: 'thumb' });
     if (thumbURL.has(s.id)) th.append(h('img', { src: thumbURL.get(s.id), alt: '' })); else th.append(icon(s.n ? 'cube' : 'ruler'));
-    const meta = [fmtDate(s.created), s.n ? plural(s.n, 'Punkt', 'Punkte') : 'nur Messung', s.measures.length ? plural(s.measures.length, 'Strecke', 'Strecken') : null].filter(Boolean).join(' · ');
+    const meta = [fmtDate(s.created), s.room && s.room.manual ? `Raum ${s.room.area.toFixed(1)} m²` : null, s.n ? plural(s.n, 'Punkt', 'Punkte') : (s.room ? null : 'nur Messung'), s.measures.length ? plural(s.measures.length, 'Strecke', 'Strecken') : null].filter(Boolean).join(' · ');
     list.append(h('li', null, h('button', { type: 'button', class: 'row-main', onclick: () => navigate({ name: 'viewer', id: s.id }) },
       th,
       h('span', { class: 'row-body' },
@@ -2009,7 +2465,8 @@ function renderTop() {
     $('#topSub').textContent = arSupport === 'ok' ? `${plural(scans.length, 'Scan', 'Scans')} · AR bereit` : plural(scans.length, 'Scan', 'Scans');
   } else if (V.scan) {
     $('#topTitle').textContent = V.scan.name || 'Ohne Namen';
-    $('#topSub').textContent = [fmtDate(V.scan.created), V.scan.n ? plural(V.scan.n, 'Punkt', 'Punkte') : 'nur Messung', plural(V.scan.measures.length, 'Strecke', 'Strecken')].join(' · ');
+    const r = V.scan.room;
+    $('#topSub').textContent = [fmtDate(V.scan.created), r && r.manual ? `${r.area.toFixed(1)} m²` : null, V.scan.n ? plural(V.scan.n, 'Punkt', 'Punkte') : (r ? null : 'nur Messung'), V.scan.measures.length || !r ? plural(V.scan.measures.length, 'Strecke', 'Strecken') : null].filter(Boolean).join(' · ');
   }
 }
 function setView(v) {
@@ -2046,7 +2503,7 @@ window.addEventListener('popstate', e => {
   window.scrollTo(0, 0);
 });
 $('#btnBack').addEventListener('click', goBack);
-$('#btnScan').addEventListener('click', () => startAR('scan'));
+$('#btnScan').addEventListener('click', () => startAR('room'));
 $('#btnMeasure').addEventListener('click', () => startAR('measure'));
 
 /* ---------- Beispiel-Scan (Raum mit Tür, Fenster, Stütze, Palette, Meterriss) ---------- */
@@ -2112,7 +2569,7 @@ async function init() {
   renderTop();
 }
 // Für Tests und Fehlersuche auf dem Gerät
-window.__bs3d = { Fusion, integrateDepth, unprojector, makeExample, detectRoom, estimateLevels, state: S, viewer: V };
+window.__bs3d = { Fusion, integrateDepth, unprojector, makeExample, detectRoom, estimateLevels, roomFromPolygon, rectify, state: S, viewer: V, rc: RC };
 init();
 </script>
 
